@@ -67,5 +67,8 @@
   "plugin_views.list.title": "列出外掛頁面",
   "plugin_views.list.description": "目前呼叫方能開啟的已載入外掛的頁面，帶每個頁面的視圖描述與外掛操作的 HTTP 路由；前端執行期據此呈現外掛頁面。",
   "openapi.tags.plugin_views.name": "外掛頁面",
-  "openapi.tags.plugin_views.description": "已載入外掛貢獻給前端的頁面。"
+  "openapi.tags.plugin_views.description": "已載入外掛貢獻給前端的頁面。",
+  "plugins.package.locale_invalid": "locales/{locale}.json 的前端文案在 '{key}' 處不合規則：根上只能有外掛簡稱，每一段是小寫字母、數字與底線，葉子都是文字。",
+  "plugins.contribution.page_view_invalid": "頁面 '{code}' 的頁面描述在 '{path}' 處不合規則。",
+  "plugins.contribution.page_text_missing": "頁面 '{code}' 用到的文案鍵 '{key}' 在 en-US 的前端文案裡沒有。"
 }

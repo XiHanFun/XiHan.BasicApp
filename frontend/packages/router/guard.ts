@@ -20,7 +20,8 @@ import {
   useTabbarStore,
   useUserStore,
 } from '~/stores'
-import { mapMenuToRoutes } from './dynamic'
+import { mapMenuToRoutes, menuComponents } from './dynamic'
+import { prepareViewSources } from './views'
 
 const WHITE_LIST = [FORBIDDEN_PATH, NOT_FOUND_PATH, SERVER_ERROR_PATH]
 
@@ -185,6 +186,8 @@ export function setupRouterGuard(router: Router) {
           }
         }
         // 动态模式：后端菜单驱动（accessRoutes 是 auth.permissions 菜单树的投影）
+        // 模块视图表之外的组件（插件页面）先交给视图来源准备，装路由时才解析得到
+        await prepareViewSources(menuComponents(accessStore.accessRoutes))
         installDynamicRoutes(mapMenuToRoutes(accessStore.accessRoutes))
         tabbarStore.syncAffixTabs(affixTabsOf(router, accessStore.accessRoutes))
       }

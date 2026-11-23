@@ -20,7 +20,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 包是测试里手工拼的 zip，不起插件进程。核对：包大小、读不了的包与不安全的条目、旁挂清单版本与未知字段、隔离级别、管道中间件、短名文法与保留名、当前平台的入口、
-/// 10 种区域文案、操作资源段、权限码、页面、回调与扩展点；管理：核对给出的授予、安装时必须项缺一不可、清单 ID 与短名已装即冲突、整组替换授予带并发戳、
+/// 10 种区域文案与它的键、操作资源段、权限码、页面与页面描述、页面用到的文案键、回调与扩展点；管理：核对给出的授予、安装时必须项缺一不可、清单 ID 与短名已装即冲突、整组替换授予带并发戳、
 /// 删除后能重装；插件管理只在平台一侧；模块开关关掉后操作与权限码都不出现
 /// </remarks>
 public sealed class PluginsTests : IDisposable
@@ -102,19 +102,32 @@ public sealed class PluginsTests : IDisposable
     /// <summary>
     /// 包里清单之外的文件：当前平台的可执行文件、10 种区域文案与页面描述
     /// </summary>
+    /// <remarks>
+    /// 页面列出预警，只读：列表绑插件的 <c>weather-alerts.list</c>，一列标题
+    /// </remarks>
     private static Dictionary<string, byte[]> Files()
     {
         var files = new Dictionary<string, byte[]>(StringComparer.Ordinal)
         {
             [$"runtimes/{RuntimeInformation.RuntimeIdentifier}/{Name}"] = [0x7F, 0x45, 0x4C, 0x46],
-            ["pages/forecast.json"] = Encoding.UTF8.GetBytes("""{"columns":[]}"""),
+            ["pages/forecast.json"] = Encoding.UTF8.GetBytes(View()),
         };
         foreach (var locale in PluginInspector.Locales)
         {
-            files[$"locales/{locale}.json"] = Encoding.UTF8.GetBytes("""{"weather":{"pages":{"forecast":"Forecast"}}}""");
+            files[$"locales/{locale}.json"] = Encoding.UTF8.GetBytes("""{"weather":{"pages":{"forecast":"Forecast"},"alerts":{"title":"Title"}}}""");
         }
 
         return files;
+    }
+
+    /// <summary>
+    /// 合规的页面描述，可以先改再写出
+    /// </summary>
+    private static string View(Action<JsonObject>? change = null)
+    {
+        var view = JsonNode.Parse("""{"list":"weather-alerts.list","columns":[{"key":"title","titleKey":"weather.alerts.title"}]}""")!.AsObject();
+        change?.Invoke(view);
+        return view.ToJsonString();
     }
 
     /// <summary>
@@ -287,12 +300,23 @@ public sealed class PluginsTests : IDisposable
             ("entry missing", Package(files: f => f.Remove($"runtimes/{rid}/{Name}")), PluginsErrors.PackageInvalid, $"runtime={rid}"),
             ("runtime file at the root too", Package(files: f => f[$"runtimes/{rid}/pages/forecast.json"] = [0x7B, 0x7D]), PluginsErrors.PackageInvalid, "path=pages/forecast.json"),
             ("locale missing", Package(files: static f => f.Remove("locales/ko-KR.json")), PluginsErrors.PackageInvalid, "locale=ko-KR"),
+            ("locale unreadable", Package(files: static f => f["locales/de-DE.json"] = Encoding.UTF8.GetBytes("not json")), PluginsErrors.PackageInvalid, "locale=de-DE;key=$"),
+            ("locale outside the name", Package(files: static f => f["locales/de-DE.json"] = Encoding.UTF8.GetBytes("""{"files":{"title":"Files"}}""")), PluginsErrors.PackageInvalid, "locale=de-DE;key=files"),
+            ("locale leaf not text", Package(files: static f => f["locales/de-DE.json"] = Encoding.UTF8.GetBytes("""{"weather":{"pages":{"forecast":1}}}""")), PluginsErrors.PackageInvalid, "locale=de-DE;key=weather.pages.forecast"),
+            ("locale segment", Package(files: static f => f["locales/de-DE.json"] = Encoding.UTF8.GetBytes("""{"weather":{"Pages":{"forecast":"Vorhersage"}}}""")), PluginsErrors.PackageInvalid, "locale=de-DE;key=weather.Pages"),
             ("operation outside the name", Package(manifest: static m => m["contributes"]!["operations"] = new JsonArray("weather.get", "files.list")), PluginsErrors.ContributionInvalid, "id=files.list;name=weather"),
             ("codes mismatch", Package(descriptor: static d => d["permissions"] = JsonNode.Parse("""[{"code":"weather.weather.write"}]""")), PluginsErrors.ContributionInvalid, null),
             ("code of another resource", Package(manifest: static m => m["contributes"]!["permissions"] = new JsonArray("weather.forecasts.read"), descriptor: static d => { d["permissions"] = JsonNode.Parse("""[{"code":"weather.forecasts.read"}]"""); d["pages"] = new JsonArray(); }), PluginsErrors.ContributionInvalid, "code=weather.forecasts.read"),
             ("page route", Package(descriptor: static d => d["pages"]![0]!["route"] = "/weather/forecast"), PluginsErrors.ContributionInvalid, "code=weather.forecast"),
             ("page file missing", Package(files: static f => f.Remove("pages/forecast.json")), PluginsErrors.ContributionInvalid, "code=weather.forecast"),
             ("page view kind", Package(descriptor: static d => d["pages"]![0]!["view"]!["kind"] = "script"), PluginsErrors.ContributionInvalid, "code=weather.forecast"),
+            ("page view member", Package(files: static f => f["pages/forecast.json"] = Encoding.UTF8.GetBytes(View(static v => v["search"] = true))), PluginsErrors.ContributionInvalid, "code=weather.forecast;path=$.search"),
+            ("page view operation", Package(files: static f => f["pages/forecast.json"] = Encoding.UTF8.GetBytes(View(static v => v["list"] = "files.list"))), PluginsErrors.ContributionInvalid, "code=weather.forecast;path=list"),
+            ("page view without form", Package(files: static f => f["pages/forecast.json"] = Encoding.UTF8.GetBytes(View(static v => v["update"] = "weather.get"))), PluginsErrors.ContributionInvalid, "code=weather.forecast;path=form"),
+            ("page view column type", Package(files: static f => f["pages/forecast.json"] = Encoding.UTF8.GetBytes(View(static v => v["columns"]![0]!["type"] = "image"))), PluginsErrors.ContributionInvalid, "code=weather.forecast;path=columns[0].type"),
+            ("page view field key", Package(files: static f => f["pages/forecast.json"] = Encoding.UTF8.GetBytes(View(static v => { v["create"] = "weather.get"; v["form"] = JsonNode.Parse("""[{"key":"title","labelKey":"weather.alerts.title"},{"key":"title","labelKey":"weather.alerts.title"}]"""); }))), PluginsErrors.ContributionInvalid, "code=weather.forecast;path=form[1].key"),
+            ("page title text", Package(descriptor: static d => d["pages"]![0]!["titleKey"] = "weather.pages.radar"), PluginsErrors.ContributionInvalid, "code=weather.forecast;key=weather.pages.radar"),
+            ("page view text", Package(files: static f => f["pages/forecast.json"] = Encoding.UTF8.GetBytes(View(static v => v["columns"]![0]!["titleKey"] = "weather.alerts.level"))), PluginsErrors.ContributionInvalid, "code=weather.forecast;key=weather.alerts.level"),
             ("unknown callback", Package(manifest: static m => m["permissions"] = new JsonArray(PluginInspector.PipelineCapability), descriptor: static d => d["callbacks"] = new JsonArray("weather.nothing.read")), PluginsErrors.ContributionInvalid, "code=weather.nothing.read"),
             ("callback without pipeline", Package(descriptor: static d => d["callbacks"] = new JsonArray(PluginsPermissions.PluginsRead)), PluginsErrors.ContributionInvalid, null),
             ("extends", Package(descriptor: static d => d["extends"] = JsonNode.Parse("""[{"point":"users.detail"}]""")), PluginsErrors.ContributionInvalid, null),

@@ -67,5 +67,8 @@
   "plugin_views.list.title": "Listar páginas de plugins",
   "plugin_views.list.description": "As páginas dos plugins carregados que o chamador pode abrir, com a descrição da visualização de cada página e as rotas HTTP das operações do plugin; o frontend as lê em tempo de execução para renderizar as páginas.",
   "openapi.tags.plugin_views.name": "Páginas de plugins",
-  "openapi.tags.plugin_views.description": "As páginas que os plugins carregados contribuem para o frontend."
+  "openapi.tags.plugin_views.description": "As páginas que os plugins carregados contribuem para o frontend.",
+  "plugins.package.locale_invalid": "Os textos de interface em locales/{locale}.json são inválidos em '{key}': a raiz contém apenas o nome curto do plugin, cada segmento usa letras minúsculas, dígitos e sublinhados, e cada folha é uma string.",
+  "plugins.contribution.page_view_invalid": "A descrição de visualização da página '{code}' é inválida em '{path}'.",
+  "plugins.contribution.page_text_missing": "A página '{code}' usa a chave de texto '{key}', que falta nos textos de interface en-US."
 }

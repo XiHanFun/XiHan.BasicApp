@@ -67,5 +67,8 @@
   "plugin_views.list.title": "플러그인 페이지 나열",
   "plugin_views.list.description": "호출자가 열 수 있는 로드된 플러그인의 페이지와 각 페이지의 뷰 설명, 플러그인 작업의 HTTP 경로입니다. 프런트엔드는 런타임에 이를 읽어 플러그인 페이지를 렌더링합니다.",
   "openapi.tags.plugin_views.name": "플러그인 페이지",
-  "openapi.tags.plugin_views.description": "로드된 플러그인이 프런트엔드에 제공하는 페이지입니다."
+  "openapi.tags.plugin_views.description": "로드된 플러그인이 프런트엔드에 제공하는 페이지입니다.",
+  "plugins.package.locale_invalid": "locales/{locale}.json의 프런트엔드 문구가 '{key}'에서 규칙에 맞지 않습니다. 루트에는 플러그인 짧은 이름만 두고, 각 세그먼트는 소문자·숫자·밑줄, 끝값은 모두 문자열이어야 합니다.",
+  "plugins.contribution.page_view_invalid": "페이지 '{code}'의 뷰 정의가 '{path}'에서 규칙에 맞지 않습니다.",
+  "plugins.contribution.page_text_missing": "페이지 '{code}'가 쓰는 문구 키 '{key}'가 en-US 프런트엔드 문구에 없습니다."
 }

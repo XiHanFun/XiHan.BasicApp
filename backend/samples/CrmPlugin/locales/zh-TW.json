@@ -1,5 +1,10 @@
 {
-  "crm.pages.customers": "客戶",
-  "crm.customers.name": "名稱",
-  "crm.customers.email": "電子郵件"
+  "crm": {
+    "customers": {
+      "title": "客戶",
+      "name": "名稱",
+      "email": "電子郵件",
+      "email_help": "選填，聯絡這位客戶用的地址。"
+    }
+  }
 }

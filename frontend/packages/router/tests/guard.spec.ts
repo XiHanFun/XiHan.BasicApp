@@ -40,6 +40,7 @@ vi.mock('~/stores', async (importOriginal) => {
 
 // 菜单里的组件按页面登记解析：这里换成可控的空页面，避免加载真实的能力包视图
 vi.mock('~/router/views', () => ({
+  prepareViewSources: async () => {},
   resolveView: (component: string) => {
     if (component.includes('missing'))
       throw new Error(`View '${component}' is not found`)

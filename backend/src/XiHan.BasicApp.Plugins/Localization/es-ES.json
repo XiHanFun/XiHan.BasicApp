@@ -67,5 +67,8 @@
   "plugin_views.list.title": "Listar páginas de complementos",
   "plugin_views.list.description": "Las páginas de los complementos cargados que el llamante puede abrir, con la descripción de la vista de cada página y las rutas HTTP de las operaciones del complemento; el frontend las lee en tiempo de ejecución para mostrar las páginas.",
   "openapi.tags.plugin_views.name": "Páginas de complementos",
-  "openapi.tags.plugin_views.description": "Las páginas que los complementos cargados aportan al frontend."
+  "openapi.tags.plugin_views.description": "Las páginas que los complementos cargados aportan al frontend.",
+  "plugins.package.locale_invalid": "Los textos de interfaz de locales/{locale}.json no son válidos en '{key}': la raíz solo contiene el nombre corto del complemento, cada segmento usa minúsculas, dígitos y guiones bajos, y cada hoja es una cadena.",
+  "plugins.contribution.page_view_invalid": "La descripción de vista de la página '{code}' no es válida en '{path}'.",
+  "plugins.contribution.page_text_missing": "La página '{code}' usa la clave de texto '{key}', que falta en los textos de interfaz en-US."
 }

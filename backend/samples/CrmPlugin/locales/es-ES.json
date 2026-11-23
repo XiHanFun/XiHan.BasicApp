@@ -1,5 +1,10 @@
 {
-  "crm.pages.customers": "Clientes",
-  "crm.customers.name": "Nombre",
-  "crm.customers.email": "Correo electrónico"
+  "crm": {
+    "customers": {
+      "title": "Clientes",
+      "name": "Nombre",
+      "email": "Correo electrónico",
+      "email_help": "Opcional; la dirección para contactar al cliente."
+    }
+  }
 }

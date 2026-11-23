@@ -94,6 +94,7 @@ public sealed class PluginsFeature : IHostedFeature
         context.Services.AddScoped<PluginChanges>();
         context.Services.AddSingleton<IHealthContributor, PluginsHealthContributor>();
         context.Services.AddPermissionCatalog("plugins", PluginsPermissions.All);
+        context.Services.AddPageCatalog("plugins", PluginsPages.All);
         foreach (var permission in PluginsPermissions.All)
         {
             context.AddPermission(permission.ToDefinition());

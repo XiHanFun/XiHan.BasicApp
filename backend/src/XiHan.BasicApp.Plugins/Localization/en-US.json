@@ -67,5 +67,8 @@
   "plugin_views.list.title": "List plugin pages",
   "plugin_views.list.description": "The pages of loaded plugins that the caller may open, with each page's view description and the HTTP routes of the plugin's operations; the frontend reads it at runtime to render plugin pages.",
   "openapi.tags.plugin_views.name": "Plugin pages",
-  "openapi.tags.plugin_views.description": "The pages that loaded plugins contribute to the frontend."
+  "openapi.tags.plugin_views.description": "The pages that loaded plugins contribute to the frontend.",
+  "plugins.package.locale_invalid": "The front-end texts in locales/{locale}.json are invalid at '{key}': the root holds only the plugin's short name, every segment is lowercase letters, digits and underscores, and every leaf is a string.",
+  "plugins.contribution.page_view_invalid": "The view description of page '{code}' is invalid at '{path}'.",
+  "plugins.contribution.page_text_missing": "Page '{code}' uses the text key '{key}', which the en-US front-end texts lack."
 }

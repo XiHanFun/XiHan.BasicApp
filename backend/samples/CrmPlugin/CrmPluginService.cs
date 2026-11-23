@@ -33,6 +33,11 @@ internal sealed class CrmPluginService(PluginState state, CustomerStore customer
     public const string CreateOperation = "crm-customers.create";
 
     /// <summary>
+    /// 修改客户
+    /// </summary>
+    public const string UpdateOperation = "crm-customers.update";
+
+    /// <summary>
     /// 删除客户
     /// </summary>
     public const string DeleteOperation = "crm-customers.delete";
@@ -84,6 +89,15 @@ internal sealed class CrmPluginService(PluginState state, CustomerStore customer
             Expose = { "http" },
             Permission = "crm.crm-customers.create",
             RequestSchema = """{"type":"object","properties":{"name":{"type":"string","maxLength":64},"email":{"type":["string","null"],"maxLength":128}},"required":["name"]}""",
+            ResponseSchema = CustomerSchema,
+        });
+        response.Operations.Add(new OperationDeclaration
+        {
+            Id = UpdateOperation,
+            Stability = "experimental",
+            Expose = { "http" },
+            Permission = "crm.crm-customers.update",
+            RequestSchema = """{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"name":{"type":"string","maxLength":64},"email":{"type":["string","null"],"maxLength":128}},"required":["id","name"]}""",
             ResponseSchema = CustomerSchema,
         });
         response.Operations.Add(new OperationDeclaration
@@ -153,7 +167,7 @@ internal sealed class CrmPluginService(PluginState state, CustomerStore customer
     public override Task<InvokeResponse> Invoke(InvokeRequest request, ServerCallContext context)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.Operation is not (ListOperation or CreateOperation or DeleteOperation))
+        if (request.Operation is not (ListOperation or CreateOperation or UpdateOperation or DeleteOperation))
         {
             throw new RpcException(new Grpc.Core.Status(StatusCode.Unimplemented, $"Operation '{request.Operation}' is not served by this plugin."));
         }
@@ -169,6 +183,7 @@ internal sealed class CrmPluginService(PluginState state, CustomerStore customer
         {
             ListOperation => Success(new JsonObject { ["items"] = new JsonArray([.. customers.List(tenant).Select(ToJson)]) }),
             CreateOperation => Create(tenant, payload),
+            UpdateOperation => Update(tenant, payload),
             _ => Delete(tenant, payload),
         });
     }
@@ -186,6 +201,24 @@ internal sealed class CrmPluginService(PluginState state, CustomerStore customer
 
         var email = payload["email"]?.GetValue<string>();
         return Success(ToJson(customers.Create(tenant, name, string.IsNullOrWhiteSpace(email) ? null : email.Trim())));
+    }
+
+    /// <summary>
+    /// 修改客户：只改得到本租户的，名称同样不能为空
+    /// </summary>
+    private InvokeResponse Update(string tenant, JsonObject payload)
+    {
+        var text = payload["id"]?.GetValue<string>() ?? string.Empty;
+        var name = (payload["name"]?.GetValue<string>() ?? string.Empty).Trim();
+        if (name.Length == 0)
+        {
+            return new InvokeResponse { Status = Failure("CRM_VALIDATION_001", "crm.customer.name_required", null) };
+        }
+
+        var email = payload["email"]?.GetValue<string>();
+        return Guid.TryParse(text, out var id) && customers.Update(tenant, id, name, string.IsNullOrWhiteSpace(email) ? null : email.Trim()) is { } customer
+            ? Success(ToJson(customer))
+            : new InvokeResponse { Status = Failure("CRM_NOTFOUND_001", "crm.customer.not_found", new JsonObject { ["id"] = text }) };
     }
 
     /// <summary>

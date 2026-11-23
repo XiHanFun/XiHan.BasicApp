@@ -1,13 +1,28 @@
 {
   "list": "crm-customers.list",
   "create": "crm-customers.create",
+  "update": "crm-customers.update",
   "delete": "crm-customers.delete",
   "columns": [
-    { "key": "name", "titleKey": "crm.customers.name" },
-    { "key": "email", "titleKey": "crm.customers.email" }
+    {
+      "key": "name",
+      "titleKey": "crm.customers.name"
+    },
+    {
+      "key": "email",
+      "titleKey": "crm.customers.email"
+    }
   ],
   "form": [
-    { "key": "name", "labelKey": "crm.customers.name", "required": true },
-    { "key": "email", "labelKey": "crm.customers.email" }
+    {
+      "key": "name",
+      "labelKey": "crm.customers.name",
+      "required": true
+    },
+    {
+      "key": "email",
+      "labelKey": "crm.customers.email",
+      "helpKey": "crm.customers.email_help"
+    }
   ]
 }

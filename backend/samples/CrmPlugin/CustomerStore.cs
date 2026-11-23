@@ -39,6 +39,26 @@ internal sealed class CustomerStore
     }
 
     /// <summary>
+    /// 修改客户的名称与邮箱
+    /// </summary>
+    /// <param name="tenant">租户</param>
+    /// <param name="id">客户 ID</param>
+    /// <param name="name">名称</param>
+    /// <param name="email">邮箱，可空</param>
+    /// <returns>改后的客户；这个租户下没有它时为空</returns>
+    public Customer? Update(string tenant, Guid id, string name, string? email)
+    {
+        if (!_byTenant.TryGetValue(tenant, out var customers) || !customers.ContainsKey(id))
+        {
+            return null;
+        }
+
+        var customer = new Customer(id, name, email);
+        customers[id] = customer;
+        return customer;
+    }
+
+    /// <summary>
     /// 删除客户
     /// </summary>
     /// <param name="tenant">租户</param>

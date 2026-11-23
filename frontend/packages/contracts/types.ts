@@ -15817,6 +15817,10 @@ export interface components {
             pages: components["schemas"]["PluginViewPageResponse"][];
             /** @description 插件发布到 HTTP 的操作，按操作 ID */
             operations: components["schemas"]["PluginViewOperationResponse"][];
+            /** @description 调用方区域的前端文案，键是点号连接的路径；缺的键按 en-US 补上 */
+            texts: {
+                [key: string]: string;
+            };
         };
         /** @description 岗位的网络契约 */
         PositionResponse: {

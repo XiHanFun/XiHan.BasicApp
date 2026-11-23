@@ -12,7 +12,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// 真插件进程的全程：示例插件 CrmPlugin
 /// </summary>
 /// <remarks>
-/// 方案 E1 的退出条件：安装 → 启用 → HTTP 调用 → 租户隔离 → 套餐门控 → 分组文档出现插件 → 停用后路由与分组都撤回 → 卸载清理；插件的失败按握手的消息目录翻译
+/// 方案 E1 的退出条件：安装 → 启用 → HTTP 调用 → 租户隔离 → 套餐门控 → 分组文档出现插件 → 停用后路由与分组都撤回 → 卸载清理；插件的失败按握手的消息目录翻译，页面描述带调用方语言的前端文案
 /// </remarks>
 public sealed class PluginEndToEndTests : IDisposable
 {
@@ -52,16 +52,18 @@ public sealed class PluginEndToEndTests : IDisposable
         // 套餐门控：插件码缺省不在任何套餐里，租户管理员（全部权限）也调不了
         Assert.Equal(HttpStatusCode.Forbidden, (await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/crm-customers", token: contoso))).Response.StatusCode);
         var enterprise = await EditionsTests.EditionIdAsync(server, platform, "enterprise");
-        string[] plugin = [CrmPluginPackage.Read, CrmPluginPackage.Create, CrmPluginPackage.Delete];
+        string[] plugin = [CrmPluginPackage.Read, CrmPluginPackage.Create, CrmPluginPackage.Update, CrmPluginPackage.Delete];
         await SetEditionAsync(server, platform, enterprise, add: plugin);
 
         // HTTP 调用：经宿主的完整管道转交插件进程
         var (created, customer) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/crm-customers", """{"name":"Ada","email":"ada@contoso.test"}""", contoso));
         Assert.True(created.StatusCode == HttpStatusCode.Created, customer.GetRawText());
         var customerId = customer.GetProperty("id").GetString()!;
+        var (updated, renamed) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Put, $"/api/crm-customers/{customerId}", """{"name":"Ada Lovelace","email":"ada@contoso.test"}""", contoso));
+        Assert.True(updated.StatusCode == HttpStatusCode.OK, renamed.GetRawText());
         var (listed, list) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/crm-customers", token: contoso));
         Assert.True(listed.StatusCode == HttpStatusCode.OK, list.GetRawText());
-        Assert.Equal(["Ada"], list.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("name").GetString()!));
+        Assert.Equal(["Ada Lovelace"], list.GetProperty("items").EnumerateArray().Select(static c => c.GetProperty("name").GetString()!));
 
         // 插件的失败按握手带来的消息目录翻译成调用方的语言
         var (rejected, problem) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/crm-customers", """{"name":"  "}""", contoso, acceptLanguage: "zh-CN"));
@@ -85,8 +87,11 @@ public sealed class PluginEndToEndTests : IDisposable
         Assert.Equal(("crm.customers", "plugins/crm/customers/index", "schema"), (page.GetProperty("code").GetString(), page.GetProperty("component").GetString(), page.GetProperty("viewKind").GetString()));
         Assert.Equal("crm-customers.list", JsonElement.Parse(page.GetProperty("viewJson").GetString()!).GetProperty("list").GetString());
         Assert.Equal(
-            ["crm-customers.create POST /api/crm-customers", "crm-customers.delete DELETE /api/crm-customers/{id}", "crm-customers.list GET /api/crm-customers"],
+            ["crm-customers.create POST /api/crm-customers", "crm-customers.delete DELETE /api/crm-customers/{id}", "crm-customers.list GET /api/crm-customers", "crm-customers.update PUT /api/crm-customers/{id}"],
             crm.GetProperty("operations").EnumerateArray().Select(static o => $"{o.GetProperty("id").GetString()} {o.GetProperty("method").GetString()} {o.GetProperty("path").GetString()}"));
+        Assert.Equal(("Customers", "Name"), (crm.GetProperty("texts").GetProperty("crm.customers.title").GetString(), crm.GetProperty("texts").GetProperty("crm.customers.name").GetString()));
+        var (_, chinese) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Get, "/api/plugin-views", token: contoso, acceptLanguage: "zh-CN"));
+        Assert.Equal("客户", chinese.GetProperty("plugins")[0].GetProperty("texts").GetProperty("crm.customers.title").GetString());
 
         // 接口文档：插件一组，全量文档的 x-tagGroups 里有它，分组文档只有它的操作；标题取插件的消息目录
         var (_, full) = await DocumentAsync(server, "/openapi.json");

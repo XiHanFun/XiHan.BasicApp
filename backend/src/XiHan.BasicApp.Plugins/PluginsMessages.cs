@@ -136,6 +136,14 @@ public static class PluginsMessages
     public const string PackageLocaleMissing = "plugins.package.locale_missing";
 
     /// <summary>
+    /// 插件包某种区域的前端文案不合规则
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>locale</c>、<c>key</c>（不合规则的第一个键，整份读不出为 <c>$</c>）
+    /// </remarks>
+    public const string PackageLocaleInvalid = "plugins.package.locale_invalid";
+
+    /// <summary>
     /// 框架清单的种类不是插件
     /// </summary>
     public const string PackageKindInvalid = "plugins.package.kind_invalid";
@@ -213,6 +221,22 @@ public static class PluginsMessages
     /// 参数：<c>code</c>
     /// </remarks>
     public const string PageInvalid = "plugins.contribution.page_invalid";
+
+    /// <summary>
+    /// 页面描述不合规则
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>code</c>、<c>path</c>（不合规则的位置，如 <c>columns[0].key</c>）
+    /// </remarks>
+    public const string PageViewInvalid = "plugins.contribution.page_view_invalid";
+
+    /// <summary>
+    /// 页面用到的文案键 en-US 的前端文案里没有
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>code</c>、<c>key</c>
+    /// </remarks>
+    public const string PageTextMissing = "plugins.contribution.page_text_missing";
 
     /// <summary>
     /// 回调的权限码宿主没有登记

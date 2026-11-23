@@ -67,5 +67,8 @@
   "plugin_views.list.title": "Plugin-Seiten auflisten",
   "plugin_views.list.description": "Die Seiten geladener Plugins, die der Aufrufer öffnen darf, mit der Ansichtsbeschreibung jeder Seite und den HTTP-Routen der Plugin-Operationen; das Frontend liest sie zur Laufzeit, um Plugin-Seiten darzustellen.",
   "openapi.tags.plugin_views.name": "Plugin-Seiten",
-  "openapi.tags.plugin_views.description": "Die Seiten, die geladene Plugins zum Frontend beitragen."
+  "openapi.tags.plugin_views.description": "Die Seiten, die geladene Plugins zum Frontend beitragen.",
+  "plugins.package.locale_invalid": "Die Frontend-Texte in locales/{locale}.json sind bei '{key}' ungültig: Die Wurzel enthält nur den Kurznamen des Plugins, jedes Segment besteht aus Kleinbuchstaben, Ziffern und Unterstrichen, und jedes Blatt ist eine Zeichenkette.",
+  "plugins.contribution.page_view_invalid": "Die Ansichtsbeschreibung der Seite '{code}' ist bei '{path}' ungültig.",
+  "plugins.contribution.page_text_missing": "Die Seite '{code}' verwendet den Textschlüssel '{key}', der in den en-US-Frontend-Texten fehlt."
 }

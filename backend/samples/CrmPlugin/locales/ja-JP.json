@@ -1,5 +1,10 @@
 {
-  "crm.pages.customers": "顧客",
-  "crm.customers.name": "名前",
-  "crm.customers.email": "メール"
+  "crm": {
+    "customers": {
+      "title": "顧客",
+      "name": "名前",
+      "email": "メール",
+      "email_help": "任意。この顧客への連絡先アドレスです。"
+    }
+  }
 }

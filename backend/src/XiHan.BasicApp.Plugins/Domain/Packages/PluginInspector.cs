@@ -1,7 +1,9 @@
 // Copyright (c) 2021-Present XiHanFun and contributors.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
+using System.Collections.Frozen;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Contracts.Security;
@@ -64,6 +66,21 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
     public static IReadOnlyList<string> Locales { get; } = ["en-US", "zh-CN", "zh-TW", "ja-JP", "ko-KR", "de-DE", "es-ES", "fr-FR", "pt-BR", "ru-RU"];
 
     /// <summary>
+    /// 文案的源区域：页面用到的键都要在它里面
+    /// </summary>
+    public const string SourceLocale = "en-US";
+
+    /// <summary>
+    /// 声明式页面里列的值种类
+    /// </summary>
+    private static readonly FrozenSet<string> _columnTypes = FrozenSet.Create(StringComparer.Ordinal, "text", "number", "boolean", "datetime");
+
+    /// <summary>
+    /// 声明式页面里字段的输入控件
+    /// </summary>
+    private static readonly FrozenSet<string> _fieldTypes = FrozenSet.Create(StringComparer.Ordinal, "text", "textarea", "number", "switch");
+
+    /// <summary>
     /// 内置包名之外还要保留的短名
     /// </summary>
     /// <remarks>
@@ -116,7 +133,7 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
         var checks = new Func<Error?>[]
         {
             () => CheckEntry(package, isolation),
-            () => CheckLocales(package),
+            () => CheckLocales(package, name),
             () => CheckOperations(manifest, name),
             () => CheckPermissions(manifest, descriptor, name),
             () => CheckPages(package, name),
@@ -192,12 +209,25 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
     }
 
     /// <summary>
-    /// 10 种区域的前端文案都在包里
+    /// 10 种区域的前端文案都在包里，每份都只在短名之下、叶子是文本
     /// </summary>
-    private static Error? CheckLocales(PluginPackage package)
-        => Locales.FirstOrDefault(locale => !package.Entries.Contains($"locales/{locale}.json")) is { } missing
-            ? Error.Validation(PluginsErrors.PackageInvalid, PluginsMessages.PackageLocaleMissing, MessageArguments.Of(("locale", missing)))
-            : null;
+    private static Error? CheckLocales(PluginPackage package, string name)
+    {
+        foreach (var locale in Locales)
+        {
+            if (!package.Documents.TryGetValue(PluginTexts.EntryOf(locale), out var json))
+            {
+                return Error.Validation(PluginsErrors.PackageInvalid, PluginsMessages.PackageLocaleMissing, MessageArguments.Of(("locale", locale)));
+            }
+
+            if (!PluginTexts.TryRead(json, name, out _, out var key))
+            {
+                return Error.Validation(PluginsErrors.PackageInvalid, PluginsMessages.PackageLocaleInvalid, MessageArguments.Of(("locale", locale), ("key", key)));
+            }
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// 每个操作的资源段等于短名或以 <c>&lt;短名&gt;-</c> 开头
@@ -240,9 +270,13 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
     /// <summary>
     /// 页面码 <c>&lt;短名&gt;.&lt;页&gt;</c>、路由 <c>/plugins/&lt;短名&gt;/&lt;页&gt;</c>、标题键、视图与所需权限码都合规则
     /// </summary>
+    /// <remarks>
+    /// 页面描述绑的是插件自己的操作；页面标题与页面描述用到的文案键都要在 en-US 的文案里（前端缺键时按 en-US 回退）
+    /// </remarks>
     private Error? CheckPages(PluginPackage package, string name)
     {
         var pluginCodes = package.Descriptor.Permissions.Select(static p => p.Code).ToHashSet(StringComparer.Ordinal);
+        PluginTexts.TryRead(package.Documents[PluginTexts.EntryOf(SourceLocale)], name, out var source, out _);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var page in package.Descriptor.Pages)
         {
@@ -259,10 +293,91 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
             {
                 return Error.Validation(PluginsErrors.ContributionInvalid, PluginsMessages.PageInvalid, MessageArguments.Of(("code", page.Code)));
             }
+
+            if (CheckView(package, page, source!) is { } error)
+            {
+                return error;
+            }
         }
 
         return null;
     }
+
+    /// <summary>
+    /// 声明式页面的描述合规则、用到的文案键都有
+    /// </summary>
+    private static Error? CheckView(PluginPackage package, PluginPageDescriptor page, IReadOnlyDictionary<string, string> source)
+    {
+        PluginSchemaView? view;
+        try
+        {
+            view = JsonSerializer.Deserialize(package.Documents[page.View.File], PluginsJsonContext.Default.PluginSchemaView);
+        }
+        catch (JsonException exception)
+        {
+            return ViewInvalid(page, exception.Path ?? "$");
+        }
+
+        if (view is null)
+        {
+            return ViewInvalid(page, "$");
+        }
+
+        var operations = package.Manifest.Contributes.Operations;
+        bool Owned(string? id) => id is null || operations.Contains(id, StringComparer.Ordinal);
+        var path = !operations.Contains(view.List, StringComparer.Ordinal) ? "list"
+            : !Owned(view.Create) ? "create"
+            : !Owned(view.Update) ? "update"
+            : !Owned(view.Delete) ? "delete"
+            : view.RowKey is { } rowKey && !FieldKeyPattern().IsMatch(rowKey) ? "rowKey"
+            : view.Columns.Count == 0 ? "columns"
+            : (view.Create ?? view.Update) is not null && view.Form.Count == 0 ? "form"
+            : InvalidMember("columns", view.Columns.Select(static c => (c.Key, c.Type)), _columnTypes)
+                ?? InvalidMember("form", view.Form.Select(static f => (f.Key, f.Type)), _fieldTypes);
+        if (path is not null)
+        {
+            return ViewInvalid(page, path);
+        }
+
+        var keys = view.Columns.Select(static c => c.TitleKey)
+            .Concat(view.Form.Select(static f => f.LabelKey))
+            .Concat(view.Form.Select(static f => f.HelpKey).OfType<string>())
+            .Prepend(page.TitleKey);
+        return keys.FirstOrDefault(key => !source.ContainsKey(key)) is { } missing
+            ? Error.Validation(PluginsErrors.ContributionInvalid, PluginsMessages.PageTextMissing, MessageArguments.Of(("code", page.Code), ("key", missing)))
+            : null;
+    }
+
+    /// <summary>
+    /// 列或字段里第一处不合规则的位置：键要是驼峰字段名且不重复，种类要是认得的
+    /// </summary>
+    private static string? InvalidMember(string name, IEnumerable<(string Key, string? Type)> members, FrozenSet<string> types)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var index = 0;
+        foreach (var (key, type) in members)
+        {
+            if (!FieldKeyPattern().IsMatch(key) || !seen.Add(key))
+            {
+                return $"{name}[{index}].key";
+            }
+
+            if (type is not null && !types.Contains(type))
+            {
+                return $"{name}[{index}].type";
+            }
+
+            index++;
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// 页面描述不合规则的错误
+    /// </summary>
+    private static Error ViewInvalid(PluginPageDescriptor page, string path)
+        => Error.Validation(PluginsErrors.ContributionInvalid, PluginsMessages.PageViewInvalid, MessageArguments.Of(("code", page.Code), ("path", path)));
 
     /// <summary>
     /// 页面能登记成菜单页面
@@ -333,6 +448,12 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
     /// </summary>
     [GeneratedRegex("^[a-z][a-z0-9-]*\\.[a-z][a-z0-9-]*$")]
     private static partial Regex PageCodePattern();
+
+    /// <summary>
+    /// 页面描述里行键、列与字段的文法：驼峰的 JSON 字段名
+    /// </summary>
+    [GeneratedRegex("^[a-z][a-zA-Z0-9]{0,63}$")]
+    private static partial Regex FieldKeyPattern();
 }
 
 /// <summary>

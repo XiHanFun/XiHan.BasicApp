@@ -40,6 +40,7 @@ public sealed class PluginRuntimeCatalogTests : IDisposable
         "1.0.0",
         [new PermissionDescriptor(Read, Read, PermissionScope.Tenant, audited: true), new PermissionDescriptor(Manage, Manage, PermissionScope.Platform)],
         [],
+        new Dictionary<string, IReadOnlyDictionary<string, string>>(),
         callbacks ?? [],
         unrestricted);
 

@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url'
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const MODULES = join(ROOT, 'src', 'modules')
-// 与方案 5.2 的 19 个能力包一一对应（kebab-case）；开放平台与代码生成与后端目录名、页面路由段一致写 openplatform、codegeneration（后端菜单的 component 是 openplatform/<页>/index、codegeneration/<页>/index）
+// 与后端能力包一一对应（kebab-case）；开放平台与代码生成与后端目录名、页面路由段一致写 openplatform、codegeneration（后端菜单的 component 是 openplatform/<页>/index、codegeneration/<页>/index）
 const KNOWN = new Set([
   'identity',
   'tenancy',
@@ -26,6 +26,7 @@ const KNOWN = new Set([
   'codegeneration',
   'chat',
   'ai',
+  'plugins',
 ])
 
 function views(dir, prefix = '', out = []) {

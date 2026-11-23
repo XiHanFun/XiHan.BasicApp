@@ -6,13 +6,14 @@
   "permissions": [
     { "code": "crm.crm-customers.read", "scope": "Tenant", "audited": false },
     { "code": "crm.crm-customers.create", "scope": "Tenant", "audited": true },
+    { "code": "crm.crm-customers.update", "scope": "Tenant", "audited": true },
     { "code": "crm.crm-customers.delete", "scope": "Tenant", "audited": true }
   ],
   "pages": [
     {
       "code": "crm.customers",
       "route": "/plugins/crm/customers",
-      "titleKey": "crm.pages.customers",
+      "titleKey": "crm.customers.title",
       "icon": "lucide:contact",
       "order": 10,
       "permission": "crm.crm-customers.read",

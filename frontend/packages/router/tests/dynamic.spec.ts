@@ -46,7 +46,7 @@ vi.mock('~/views/_core/embed/index.vue', async () => {
   }
 })
 
-const { mapMenuToRoutes } = await import('~/router/dynamic')
+const { mapMenuToRoutes, menuComponents } = await import('~/router/dynamic')
 
 function menu(partial: Partial<MenuRoute> & { path: string }): MenuRoute {
   return {
@@ -330,5 +330,29 @@ describe('「名字 = 路由名」的壳组件', () => {
       menu({ path: '/no-name', name: '', component: 'identity/no-name/index' }),
     ])
     expect(loaderOf(route)).toBe(loader)
+  })
+})
+
+describe('menuComponents', () => {
+  it('collects the component paths of the whole tree and skips embedded and external menus', () => {
+    expect(menuComponents([
+      menu({
+        path: '/plugins',
+        children: [
+          menu({ path: '/plugins/crm/customers', component: 'plugins/crm/customers/index' }),
+          menu({
+            path: '/plugins/embed',
+            component: 'identity/users/index',
+            meta: { title: 'menu.test', iframeSrc: 'https://example.test' } as MenuMeta,
+          }),
+          menu({
+            path: '/plugins/link',
+            component: 'identity/users/index',
+            meta: { title: 'menu.test', link: 'https://example.test' } as MenuMeta,
+          }),
+        ],
+      }),
+      menu({ path: '/identity/users', component: 'identity/users/index' }),
+    ])).toEqual(['plugins/crm/customers/index', 'identity/users/index'])
   })
 })

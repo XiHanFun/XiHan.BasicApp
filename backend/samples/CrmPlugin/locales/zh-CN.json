@@ -1,5 +1,10 @@
 {
-  "crm.pages.customers": "客户",
-  "crm.customers.name": "名称",
-  "crm.customers.email": "邮箱"
+  "crm": {
+    "customers": {
+      "title": "客户",
+      "name": "名称",
+      "email": "邮箱",
+      "email_help": "选填，联系这位客户用的地址。"
+    }
+  }
 }

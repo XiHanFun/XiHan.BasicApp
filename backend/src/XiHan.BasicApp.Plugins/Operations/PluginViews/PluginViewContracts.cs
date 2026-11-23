@@ -25,12 +25,14 @@ public sealed record PluginViewsResponse(IReadOnlyList<PluginViewResponse> Plugi
 /// <param name="Version">本节点加载的版本</param>
 /// <param name="Pages">调用方能打开的页面，按次序与页面码</param>
 /// <param name="Operations">插件发布到 HTTP 的操作，按操作 ID</param>
+/// <param name="Texts">调用方区域的前端文案，键是点号连接的路径；缺的键按 en-US 补上</param>
 public sealed record PluginViewResponse(
     string Name,
     string ManifestId,
     string Version,
     IReadOnlyList<PluginViewPageResponse> Pages,
-    IReadOnlyList<PluginViewOperationResponse> Operations);
+    IReadOnlyList<PluginViewOperationResponse> Operations,
+    IReadOnlyDictionary<string, string> Texts);
 
 /// <summary>
 /// 插件的一个页面

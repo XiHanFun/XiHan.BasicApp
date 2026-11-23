@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XiHan.BasicApp.Contracts.Pages;
 using XiHan.BasicApp.Plugins.Domain.Entities;
+using XiHan.BasicApp.Plugins.Domain.Packages;
 using XiHan.BasicApp.Runtime.Persistence;
 using XiHan.Framework.Domain.Specifications;
 using XiHan.Framework.Kernel.Operations;
@@ -226,10 +227,10 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
             return Fail(release, directory.Error!);
         }
 
-        var views = await ReadViewsAsync(release, path, cancellationToken).ConfigureAwait(false);
-        if (!views.TryGetValue(out var pageViews))
+        var frontend = await ReadFrontendAsync(release, path, cancellationToken).ConfigureAwait(false);
+        if (!frontend.TryGetValue(out var files))
         {
-            return Fail(release, views.Error!);
+            return Fail(release, frontend.Error!);
         }
 
         await RemoveFromHostAsync(host, release.ManifestId, cancellationToken).ConfigureAwait(false);
@@ -248,34 +249,35 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
         }
 
         Volatile.Write(ref _loaded, _loaded.SetItem(release.ManifestId, release));
-        catalog.Put(release.ToLoaded(pageViews, key => localizer.Find(key, SourceLocale).TryGetValue(out var template) ? template : null));
+        catalog.Put(release.ToLoaded(files, key => localizer.Find(key, SourceLocale).TryGetValue(out var template) ? template : null));
         LogLoaded(logger, release.ManifestId, release.Version, status.State);
         return Result.Success();
     }
 
     /// <summary>
-    /// 读入页面的视图描述
+    /// 读入前端文件：页面的视图描述与 10 种区域的文案
     /// </summary>
     /// <remarks>
     /// 安装时核对过文件在包里，这里读不出同样当包不可用
     /// </remarks>
-    private async Task<Result<IReadOnlyDictionary<string, string>>> ReadViewsAsync(PluginRelease release, string directory, CancellationToken cancellationToken)
+    private async Task<Result<IReadOnlyDictionary<string, string>>> ReadFrontendAsync(PluginRelease release, string directory, CancellationToken cancellationToken)
     {
-        var views = new Dictionary<string, string>(StringComparer.Ordinal);
-        foreach (var file in release.ReadDescriptor().Pages.Select(static p => p.View.File).Distinct(StringComparer.Ordinal))
+        var files = new Dictionary<string, string>(StringComparer.Ordinal);
+        var paths = release.ReadDescriptor().Pages.Select(static p => p.View.File).Concat(PluginInspector.Locales.Select(PluginTexts.EntryOf)).Distinct(StringComparer.Ordinal);
+        foreach (var file in paths)
         {
             try
             {
-                views[file] = await File.ReadAllTextAsync(Path.Combine(directory, file), cancellationToken).ConfigureAwait(false);
+                files[file] = await File.ReadAllTextAsync(Path.Combine(directory, file), cancellationToken).ConfigureAwait(false);
             }
             catch (Exception exception) when (exception is IOException or UnauthorizedAccessException)
             {
-                LogViewUnreadable(logger, exception, release.ManifestId, file);
+                LogFrontendUnreadable(logger, exception, release.ManifestId, file);
                 return Error.Unavailable(PluginsErrors.PackageUnavailable, PluginsMessages.PackageUnavailable, MessageArguments.Of(("name", release.Name), ("version", release.Version)));
             }
         }
 
-        return views;
+        return files;
     }
 
     /// <summary>
@@ -367,8 +369,8 @@ public sealed partial class PluginReconciler(IServiceScopeFactory scopes, IServi
     [LoggerMessage(Level = LogLevel.Information, Message = "Plugin {ManifestId} {Version} loaded ({State}).")]
     private static partial void LogLoaded(ILogger logger, string manifestId, string version, LifecycleState state);
 
-    [LoggerMessage(Level = LogLevel.Error, Message = "The view '{File}' of plugin {ManifestId} could not be read from its package directory.")]
-    private static partial void LogViewUnreadable(ILogger logger, Exception exception, string manifestId, string file);
+    [LoggerMessage(Level = LogLevel.Error, Message = "The front-end file '{File}' of plugin {ManifestId} could not be read from its package directory.")]
+    private static partial void LogFrontendUnreadable(ILogger logger, Exception exception, string manifestId, string file);
 
     [LoggerMessage(Level = LogLevel.Information, Message = "Plugin {ManifestId} {Version} unloaded.")]
     private static partial void LogUnloaded(ILogger logger, string manifestId, string version);

@@ -67,5 +67,8 @@
   "plugin_views.list.title": "列出插件页面",
   "plugin_views.list.description": "当前调用方能打开的已加载插件的页面，带每个页面的视图描述与插件操作的 HTTP 路由；前端运行期据此渲染插件页面。",
   "openapi.tags.plugin_views.name": "插件页面",
-  "openapi.tags.plugin_views.description": "已加载插件贡献给前端的页面。"
+  "openapi.tags.plugin_views.description": "已加载插件贡献给前端的页面。",
+  "plugins.package.locale_invalid": "locales/{locale}.json 的前端文案在 '{key}' 处不合规则：根上只能有插件短名，每一段是小写字母、数字与下划线，叶子都是文本。",
+  "plugins.contribution.page_view_invalid": "页面 '{code}' 的页面描述在 '{path}' 处不合规则。",
+  "plugins.contribution.page_text_missing": "页面 '{code}' 用到的文案键 '{key}' 在 en-US 的前端文案里没有。"
 }

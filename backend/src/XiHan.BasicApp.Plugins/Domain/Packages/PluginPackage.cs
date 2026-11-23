@@ -17,7 +17,7 @@ namespace XiHan.BasicApp.Plugins.Domain.Packages;
 /// <remarks>
 /// zip：根上是框架清单 <c>xihan.manifest.json</c> 与旁挂清单 <c>basicapp.plugin.json</c>，进程外插件的可执行文件在 <c>runtimes/&lt;运行时标识&gt;/</c> 下，
 /// Wasm 模块在根上，声明式页面在 <c>pages/</c>，前端文案在 <c>locales/&lt;区域&gt;.json</c>
-/// 只读条目清单与两份清单，不解压；条目路径要是相对、不含 <c>..</c> 的正斜杠路径，条目数与解压后的总大小有上限，防路径穿越与解压炸弹
+/// 只读条目清单、两份清单与前端文件（文案与页面描述），其余不解压；条目路径要是相对、不含 <c>..</c> 的正斜杠路径，条目数与解压后的总大小有上限，防路径穿越与解压炸弹
 /// </remarks>
 public sealed class PluginPackage
 {
@@ -49,13 +49,14 @@ public sealed class PluginPackage
     /// <summary>
     /// 创建读出的包
     /// </summary>
-    private PluginPackage(Manifest manifest, string manifestJson, PluginDescriptor descriptor, string descriptorJson, IReadOnlySet<string> entries, string sha256, long size)
+    private PluginPackage(Manifest manifest, string manifestJson, PluginDescriptor descriptor, string descriptorJson, IReadOnlySet<string> entries, IReadOnlyDictionary<string, string> documents, string sha256, long size)
     {
         Manifest = manifest;
         ManifestJson = manifestJson;
         Descriptor = descriptor;
         DescriptorJson = descriptorJson;
         Entries = entries;
+        Documents = documents;
         Sha256 = sha256;
         Size = size;
     }
@@ -84,6 +85,11 @@ public sealed class PluginPackage
     /// 全部文件条目的路径（不含目录条目）
     /// </summary>
     public IReadOnlySet<string> Entries { get; }
+
+    /// <summary>
+    /// 前端文件的原文：包里有的 10 种区域文案与旁挂清单引用的页面描述，按条目路径
+    /// </summary>
+    public IReadOnlyDictionary<string, string> Documents { get; }
 
     /// <summary>
     /// 包的 SHA-256（小写十六进制）
@@ -189,9 +195,25 @@ public sealed class PluginPackage
                 return Error.Validation(PluginsErrors.DescriptorInvalid, PluginsMessages.DescriptorInvalid, MessageArguments.Of(("path", exception.Path ?? "$")));
             }
 
-            return descriptor is null
-                ? Error.Validation(PluginsErrors.DescriptorInvalid, PluginsMessages.DescriptorInvalid, MessageArguments.Of(("path", "$")))
-                : new PluginPackage(read, manifestJson, descriptor, descriptorJson, entries, sha256, stream.Length);
+            if (descriptor is null)
+            {
+                return Error.Validation(PluginsErrors.DescriptorInvalid, PluginsMessages.DescriptorInvalid, MessageArguments.Of(("path", "$")));
+            }
+
+            // 缺的文件由核对报错，这里只读包里有的
+            var documents = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var path in PluginInspector.Locales.Select(PluginTexts.EntryOf).Concat(descriptor.Pages.Select(static p => p.View.File)).Where(entries.Contains).Distinct(StringComparer.Ordinal))
+            {
+                var text = await ReadTextAsync(archive, path, cancellationToken).ConfigureAwait(false);
+                if (!text.TryGetValue(out var content))
+                {
+                    return text.Error!;
+                }
+
+                documents[path] = content;
+            }
+
+            return new PluginPackage(read, manifestJson, descriptor, descriptorJson, entries, documents, sha256, stream.Length);
         }
     }
 
@@ -213,7 +235,7 @@ public sealed class PluginPackage
     }
 
     /// <summary>
-    /// 读一个清单条目的文本
+    /// 读一个清单或前端文件条目的文本
     /// </summary>
     private static async Task<Result<string>> ReadTextAsync(ZipArchive archive, string name, CancellationToken cancellationToken)
     {

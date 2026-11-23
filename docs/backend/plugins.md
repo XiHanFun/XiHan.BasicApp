@@ -14,10 +14,10 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | `basicapp.plugin.json` | 旁挂清单：短名、发布方、运行时、权限码的作用侧与审计、页面、回调、扩展点 |
 | `runtimes/<运行时标识>/` | 进程外插件各平台的构建产物，入口是其中的 `<entry>`；Windows 上入口没有扩展名时找 `<entry>.exe`。加载时当前平台的这一目录铺到插件目录的根上，与框架清单放在一起 |
 | `<entry>` | Wasm 插件的模块，在包根上 |
-| `locales/<区域>.json` | 10 种区域的前端文案 |
-| `pages/*.json` | 声明式页面的描述，由旁挂清单的 `pages[].view.file` 指向 |
+| `locales/<区域>.json` | 10 种区域的前端文案，写法见[前端文案与页面描述](#前端文案与页面描述) |
+| `pages/*.json` | 声明式页面的描述，由旁挂清单的 `pages[].view.file` 指向，写法见[前端文案与页面描述](#前端文案与页面描述) |
 
-读包的限制：包不超过 `BasicApp:Plugins:MaxPackageSizeMegabytes`；条目不超过 10000 个，解压后合计不超过包上限的 4 倍；条目只收相对的正斜杠路径，不许 `.`、`..`、反斜杠、盘符与重名；两份清单各不超过 1 MB、须是合法 UTF-8。
+读包的限制：包不超过 `BasicApp:Plugins:MaxPackageSizeMegabytes`；条目不超过 10000 个，解压后合计不超过包上限的 4 倍；条目只收相对的正斜杠路径，不许 `.`、`..`、反斜杠、盘符与重名；两份清单、前端文案与页面描述各不超过 1 MB、须是合法 UTF-8。
 
 旁挂清单有未知字段即拒：
 
@@ -46,6 +46,47 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 
 权限码的 `scope` 取 `Platform` 或 `Tenant`（缺省 `Tenant`），`audited` 缺省 `false`。
 
+### 前端文案与页面描述
+
+前端文案与前端模块的文案同形：根上只有短名一个成员，下面按段嵌套对象，叶子是文本；每一段是小写字母、数字与下划线。en-US 是源区域，页面标题与页面描述用到的键都要在它里面，别的区域缺的键按 en-US 补上：
+
+```json
+{
+  "weather": {
+    "pages": { "forecast": "Forecast" },
+    "alerts": { "title": "Title", "level": "Level", "level_help": "1 is the mildest." }
+  }
+}
+```
+
+声明式页面渲染成一张列表页加新建 / 编辑弹窗，列表、新建、修改、删除各绑本插件的一个操作，按钮的权限取操作要的权限码；有未知字段即拒：
+
+```json
+{
+  "list": "weather-alerts.list",
+  "create": "weather-alerts.create",
+  "update": "weather-alerts.update",
+  "delete": "weather-alerts.delete",
+  "rowKey": "id",
+  "columns": [
+    { "key": "title", "titleKey": "weather.alerts.title" },
+    { "key": "level", "titleKey": "weather.alerts.level", "type": "number" }
+  ],
+  "form": [
+    { "key": "title", "labelKey": "weather.alerts.title", "required": true },
+    { "key": "level", "labelKey": "weather.alerts.level", "helpKey": "weather.alerts.level_help", "type": "number" }
+  ]
+}
+```
+
+| 成员 | 规则 |
+| --- | --- |
+| `list` | 必填。应答带 `items` 数组，一次取回全部行；前端在浏览器里按关键字筛选、分页 |
+| `create` / `update` / `delete` | 选填。新建的请求是表单字段；修改的请求是行键加表单字段；删除的请求只有行键 |
+| `rowKey` | 行键的字段名，缺省 `id` |
+| `columns` | 至少一列。`key` 是行里的字段名（驼峰），`type` 取 `text`（缺省）、`number`、`boolean`、`datetime` |
+| `form` | 有新建或修改时至少一个字段。`type` 取 `text`（缺省）、`textarea`、`number`、`switch`；`helpKey` 的说明显示在字段名后面的问号提示里；选填的空文本交 `null` |
+
 ## 安装前核对
 
 `plugins.inspect` 按下表依次核对，第一处不过即返回它的错误：
@@ -57,10 +98,10 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | 清单种类 | `kind` 为 `plugin` 且写了 `isolation`，隔离级别在 `BasicApp:Plugins:Isolations` 里，不贡献管道中间件 | `PLUGINS_VALIDATION_103` |
 | 短名 | 合 `^[a-z][a-z0-9-]{1,31}$`；不是内置包名，也不是 `plugins`、`installed`、`custom`、`system`、`api`、`embed` | `PLUGINS_VALIDATION_104` |
 | 入口 | 当前平台的运行时在 `runtimes` 里，可执行文件在包里，运行时目录里的文件不与包根上的同名；Wasm 查包根的模块 | `PLUGINS_VALIDATION_101` |
-| 文案 | 10 种区域的 `locales/<区域>.json` 都在 | `PLUGINS_VALIDATION_101` |
+| 文案 | 10 种区域的 `locales/<区域>.json` 都在，根上只有短名、各段合文法、叶子是文本 | `PLUGINS_VALIDATION_101` |
 | 操作 | 资源段等于短名或以 `<短名>-` 开头 | `PLUGINS_VALIDATION_105` |
 | 权限码 | 与框架清单的 `contributes.permissions` 是同一组；合 `<短名>.<资源>.<动作>`，资源段是本插件某个操作的资源段 | `PLUGINS_VALIDATION_105` |
-| 页面 | 码 `<短名>.<页>`、路由 `/plugins/<短名>/<页>`、有标题键；视图种类 `schema` 且文件在包里；所需权限码是本插件的或宿主已登记的 | `PLUGINS_VALIDATION_105` |
+| 页面 | 码 `<短名>.<页>`、路由 `/plugins/<短名>/<页>`、有标题键；视图种类 `schema` 且文件在包里；所需权限码是本插件的或宿主已登记的；页面描述合上节的规则，标题与描述用到的文案键 en-US 里都有 | `PLUGINS_VALIDATION_105` |
 | 回调 | 码是宿主已登记的；有回调时框架清单的 `permissions` 要申请 `capability:kernel.pipeline` | `PLUGINS_VALIDATION_105` |
 | 扩展点 | `extends` 为空 | `PLUGINS_VALIDATION_105` |
 | 登记冲突 | 操作与权限码都还没被登记 | `PLUGINS_CONFLICT_102` |
@@ -131,11 +172,13 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 
 ## 插件的页面与接口文档
 
-`plugin-views.list` 给前端运行期用：本节点加载成功、调用方能打开的插件页面。每个插件给出短名、清单 ID 与加载的版本，每个页面给出页面码、路由、组件路径（与菜单节点上的一致）、标题键、图标、次序、所需权限码、视图种类与视图描述的 JSON 原文（包里 `view.file` 的内容，加载时读入），以及插件发布到 HTTP 的操作的路由。页面要的权限码按调用方当前的有效权限判定，没有可见页面的插件不列出。
+`plugin-views.list` 给前端运行期用：本节点加载成功、调用方能打开的插件页面。每个插件给出短名、清单 ID 与加载的版本，每个页面给出页面码、路由、组件路径（与菜单节点上的一致）、标题键、图标、次序、所需权限码、视图种类与视图描述的 JSON 原文（包里 `view.file` 的内容，加载时读入），以及插件发布到 HTTP 的操作的路由与调用方区域的前端文案（键按点号摊平，en-US 打底）。页面要的权限码按调用方当前的有效权限判定，没有可见页面的插件不列出。前端怎样接进路由见[路由](../frontend/routing)。
+
+插件管理页 `/plugins/installed`（组件路径 `plugins/installed/index`，要 `plugins.plugins.read`）在「系统服务」目录下：列表、安装向导（上传 → 检查报告与批准授予 → 安装）、详情抽屉（概览与运行状态、贡献、授予、版本）与卸载预览。
 
 每个加载成功的插件在接口文档里单独一组：组名是短名，归属是清单 ID，排在各包的分组之后（序号从 1000 起）。全量 `/openapi.json` 的 `x-tagGroups` 多出这一组，`/openapi/<短名>.json` 只含这个插件的操作，标题与说明取插件的消息目录；停用或卸载即撤回。导出的契约快照（`frontend/contracts`）不加载插件，只有内置操作。
 
-`backend/samples/CrmPlugin` 是一个进程外插件示例（短名 `crm`）：按租户在进程内存客户，演示两份清单、握手的消息目录、前端文案与页面描述怎样写；集成测试用它走安装到卸载的全程。
+`backend/samples/CrmPlugin` 是一个进程外插件示例（短名 `crm`）：按租户在进程内存客户，演示两份清单、握手的消息目录、前端文案与页面描述怎样写；集成测试用它走安装到卸载的全程，前端端到端用它在插件页面里增删改查。
 
 ## 卸载
 

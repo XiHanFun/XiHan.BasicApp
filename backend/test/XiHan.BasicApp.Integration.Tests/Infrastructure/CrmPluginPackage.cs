@@ -38,6 +38,11 @@ internal static class CrmPluginPackage
     public const string Create = "crm.crm-customers.create";
 
     /// <summary>
+    /// 修改客户
+    /// </summary>
+    public const string Update = "crm.crm-customers.update";
+
+    /// <summary>
     /// 删除客户
     /// </summary>
     public const string Delete = "crm.crm-customers.delete";

@@ -13,6 +13,7 @@ namespace XiHan.BasicApp.Plugins.Infrastructure;
 /// <param name="Version">加载的版本</param>
 /// <param name="Permissions">插件贡献的权限描述（作用侧与审计取自旁挂清单）</param>
 /// <param name="Pages">插件的页面，带视图描述</param>
+/// <param name="Texts">插件的前端文案：按区域，键是点号连接的路径</param>
 /// <param name="Callbacks">平台批准的回调权限码：插件主体持有的宿主权限码</param>
 /// <param name="UnrestrictedData">平台批准了 <c>data-scope:all</c>：插件主体不受数据范围限制</param>
 public sealed record LoadedPlugin(
@@ -21,5 +22,6 @@ public sealed record LoadedPlugin(
     string Version,
     IReadOnlyList<PermissionDescriptor> Permissions,
     IReadOnlyList<LoadedPluginPage> Pages,
+    IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Texts,
     IReadOnlyList<string> Callbacks,
     bool UnrestrictedData);

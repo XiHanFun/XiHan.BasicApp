@@ -9,8 +9,8 @@
   "isolation": "out-of-process",
   "requires": [ { "id": "kernel.plugins", "version": "1" } ],
   "contributes": {
-    "operations": [ "crm-customers.list", "crm-customers.create", "crm-customers.delete" ],
-    "permissions": [ "crm.crm-customers.read", "crm.crm-customers.create", "crm.crm-customers.delete" ],
+    "operations": [ "crm-customers.list", "crm-customers.create", "crm-customers.update", "crm-customers.delete" ],
+    "permissions": [ "crm.crm-customers.read", "crm.crm-customers.create", "crm.crm-customers.update", "crm.crm-customers.delete" ],
     "health": [ "crm" ]
   },
   "activation": [ "onStartup" ],

@@ -77199,6 +77199,13 @@
             "items": {
               "$ref": "#/components/schemas/PluginViewOperationResponse"
             }
+          },
+          "texts": {
+            "description": "\u8C03\u7528\u65B9\u533A\u57DF\u7684\u524D\u7AEF\u6587\u6848\uFF0C\u952E\u662F\u70B9\u53F7\u8FDE\u63A5\u7684\u8DEF\u5F84\uFF1B\u7F3A\u7684\u952E\u6309 en-US \u8865\u4E0A",
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
           }
         },
         "required": [
@@ -77206,7 +77213,8 @@
           "manifestId",
           "version",
           "pages",
-          "operations"
+          "operations",
+          "texts"
         ]
       },
       "PositionResponse": {

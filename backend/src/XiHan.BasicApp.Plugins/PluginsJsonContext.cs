@@ -14,7 +14,7 @@ namespace XiHan.BasicApp.Plugins;
 /// 插件模块操作的请求 / 响应序列化上下文
 /// </summary>
 /// <remarks>
-/// 源生成；枚举按字符串。插件包里的旁挂清单（<see cref="PluginDescriptor"/>）也经它读
+/// 源生成；枚举按字符串。插件包里的旁挂清单（<see cref="PluginDescriptor"/>）与页面描述（<see cref="PluginSchemaView"/>）也经它读
 /// </remarks>
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
@@ -35,6 +35,7 @@ namespace XiHan.BasicApp.Plugins;
 [JsonSerializable(typeof(PluginViewsRequest))]
 [JsonSerializable(typeof(PluginViewsResponse))]
 [JsonSerializable(typeof(PluginDescriptor))]
+[JsonSerializable(typeof(PluginSchemaView))]
 [JsonSerializable(typeof(PageRequest))]
 [JsonSerializable(typeof(BatchResult))]
 public sealed partial class PluginsJsonContext : JsonSerializerContext;

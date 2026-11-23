@@ -48,6 +48,7 @@ component: settings/configs/index  →  src/modules/settings/views/configs/index
 - 视图路径要求 kebab-case 且全局唯一，由 `pnpm modules:check` 检查；
 - 每个页面包一层「名字 = 路由名」的壳组件，KeepAlive 按路由名命中缓存，页面组件自己的名字不参与；
 - 审批中心按审批业务登记的单据组件路径（如 `access/permission-request-approval/index`）用同一个 `resolveView` 加载；
+- 模块视图表之外的组件路径交给视图来源（`registerViewSource`）：守卫装路由之前把菜单里模块视图表认不得的组件路径交给各来源准备一次（`prepareViewSources`），`resolveView` 先查模块视图表再问各来源。插件模块登记了一个来源：菜单里有 `plugins/<短名>/<页>/index` 时取一次 `plugin-views.list`，按页面描述用 `SchemaPage` 与编辑弹窗渲染插件页面，插件的前端文案并进当前区域、换语言时重取；取不到时插件页面回落到 404 并在控制台记下原因，内置页面照常可用（见[插件](../backend/plugins#插件的页面与接口文档)）；
 - 后端集成测试 `PageViewsTests` 双向核对：各包登记的页面与审批单据都能按上面的规则找到视图，`src/modules/*/views/**/index.vue` 也都有登记，多出来的视图没有入口能到。
 
 ## 守卫

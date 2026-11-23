@@ -69,6 +69,16 @@ function withRouteName(
   }
 }
 
+/** 菜单树里要解析视图的组件路径（内嵌与外链不解析） */
+export function menuComponents(menuRoutes: readonly MenuRoute[]): string[] {
+  return menuRoutes.flatMap(item => [
+    ...(item.component && !item.meta?.iframeSrc && !item.meta?.link
+      ? [item.component]
+      : []),
+    ...menuComponents(item.children ?? []),
+  ])
+}
+
 /**
  * 壳层菜单模型（accessStore.accessRoutes）转成路由记录
  * 目录重定向到第一个可导航子页，页面按组件路径解析视图，内嵌（meta.iframeSrc）挂壳层的 iframe 视图，外链不生成路由
