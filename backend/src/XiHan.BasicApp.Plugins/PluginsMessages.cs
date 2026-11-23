@@ -115,6 +115,14 @@ public static class PluginsMessages
     public const string PackageRuntimeMissing = "plugins.package.runtime_missing";
 
     /// <summary>
+    /// 运行时目录里的文件与包根上的同名
+    /// </summary>
+    /// <remarks>
+    /// 参数：<c>path</c>
+    /// </remarks>
+    public const string PackageRuntimeConflict = "plugins.package.runtime_conflict";
+
+    /// <summary>
     /// 插件包缺少某种区域的前端文案
     /// </summary>
     /// <remarks>

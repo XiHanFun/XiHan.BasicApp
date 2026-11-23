@@ -165,6 +165,7 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
     /// </summary>
     /// <remarks>
     /// 进程外插件的可执行文件在 <c>runtimes/&lt;运行时标识&gt;/&lt;入口&gt;</c>，Windows 上入口没有扩展名时补 <c>.exe</c>（与框架宿主的找法一致）；Wasm 模块在根上
+    /// 加载时当前平台的运行时目录铺到插件目录的根上（<see cref="Infrastructure.PluginCache"/>），所以里面的文件不能与根上的同名
     /// </remarks>
     private static Error? CheckEntry(PluginPackage package, PluginIsolation isolation)
     {
@@ -179,9 +180,15 @@ public sealed partial class PluginInspector(PluginsOptions options, OperationReg
         var runtime = RuntimeInformation.RuntimeIdentifier;
         var path = $"runtimes/{runtime}/{entry}";
         var found = entry.Length > 0 && (package.Entries.Contains(path) || (OperatingSystem.IsWindows() && Path.GetExtension(entry).Length == 0 && package.Entries.Contains(path + ".exe")));
-        return found && package.Descriptor.Runtimes.Contains(runtime, StringComparer.Ordinal)
-            ? null
-            : Error.Validation(PluginsErrors.PackageInvalid, PluginsMessages.PackageRuntimeMissing, MessageArguments.Of(("runtime", runtime)));
+        if (!found || !package.Descriptor.Runtimes.Contains(runtime, StringComparer.Ordinal))
+        {
+            return Error.Validation(PluginsErrors.PackageInvalid, PluginsMessages.PackageRuntimeMissing, MessageArguments.Of(("runtime", runtime)));
+        }
+
+        var prefix = $"runtimes/{runtime}/";
+        return package.Entries.Where(e => e.StartsWith(prefix, StringComparison.Ordinal)).Select(e => e[prefix.Length..]).FirstOrDefault(package.Entries.Contains) is { } conflict
+            ? Error.Validation(PluginsErrors.PackageInvalid, PluginsMessages.PackageRuntimeConflict, MessageArguments.Of(("path", conflict)))
+            : null;
     }
 
     /// <summary>

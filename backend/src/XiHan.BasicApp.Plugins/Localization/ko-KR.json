@@ -61,5 +61,6 @@
   "plugins.runtime.isolation_unavailable": "이 서버에는 격리 수준 '{isolation}'의 플러그인 호스트가 없습니다.",
   "plugins.runtime.package_unavailable": "플러그인 '{name}' 버전 {version}의 패키지가 파일 저장소에 없거나 설치 시의 SHA-256과 일치하지 않습니다.",
   "plugins.delete_preview.title": "플러그인 제거 미리 보기",
-  "plugins.delete_preview.description": "플러그인을 제거하면 삭제되는 내용을 나열합니다. 모든 버전의 권한 코드와 그에 대한 참조(역할 및 사용자 부여, 부여 규칙, 권한 조건, 위임, 상호 배제 제약, 운영 노드의 게이트 권한 코드, 요금제 허용 목록)입니다. 각 테넌트 데이터베이스의 대기 중인 권한 요청은 나열만 하고 그대로 둡니다."
+  "plugins.delete_preview.description": "플러그인을 제거하면 삭제되는 내용을 나열합니다. 모든 버전의 권한 코드와 그에 대한 참조(역할 및 사용자 부여, 부여 규칙, 권한 조건, 위임, 상호 배제 제약, 운영 노드의 게이트 권한 코드, 요금제 허용 목록)입니다. 각 테넌트 데이터베이스의 대기 중인 권한 요청은 나열만 하고 그대로 둡니다.",
+  "plugins.package.runtime_conflict": "플러그인 패키지의 루트와 이 서버의 런타임 디렉터리에 모두 '{path}'이(가) 있습니다."
 }

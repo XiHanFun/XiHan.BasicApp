@@ -61,5 +61,6 @@
   "plugins.runtime.isolation_unavailable": "Este servidor no tiene un anfitrión de complementos para el aislamiento '{isolation}'.",
   "plugins.runtime.package_unavailable": "El paquete del complemento '{name}' versión {version} no está en el almacenamiento de archivos o ya no coincide con su SHA-256.",
   "plugins.delete_preview.title": "Vista previa de la desinstalación del complemento",
-  "plugins.delete_preview.description": "Enumera lo que elimina desinstalar un complemento: los códigos de permiso de todas sus versiones y cada referencia a ellos (concesiones a roles y usuarios, reglas de concesión, condiciones, delegaciones, reglas de exclusión mutua, nodos de menú controlados, listas blancas de ediciones). Las solicitudes de permiso pendientes en las bases de datos de los inquilinos se enumeran pero se conservan."
+  "plugins.delete_preview.description": "Enumera lo que elimina desinstalar un complemento: los códigos de permiso de todas sus versiones y cada referencia a ellos (concesiones a roles y usuarios, reglas de concesión, condiciones, delegaciones, reglas de exclusión mutua, nodos de menú controlados, listas blancas de ediciones). Las solicitudes de permiso pendientes en las bases de datos de los inquilinos se enumeran pero se conservan.",
+  "plugins.package.runtime_conflict": "El paquete del complemento tiene '{path}' tanto en la raíz como en el directorio de ejecución de este servidor."
 }

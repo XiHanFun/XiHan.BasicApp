@@ -18,7 +18,8 @@ namespace XiHan.BasicApp.Plugins.Infrastructure;
 /// </summary>
 /// <remarks>
 /// 每个版本解到 <c>&lt;缓存目录&gt;/&lt;清单 ID&gt;/&lt;版本 ID&gt;/</c>：版本的内容不会变，目录在就直接用；不在时从 Files 取包、按安装时的 SHA-256 核对、解到临时目录再整体改名，半途失败不留半个目录
-/// 非 Windows 上给当前平台运行时目录里的文件加执行位（zip 带的权限不可靠）
+/// 当前平台的 <c>runtimes/&lt;运行时标识&gt;/</c> 铺到目录的根上，与框架清单放在一起：框架宿主按清单的 <c>entry</c> 相对插件目录找入口，插件按自己所在的目录读清单；别的平台的运行时目录不解
+/// 非 Windows 上给铺过来的运行时文件加执行位（zip 带的权限不可靠）
 /// 存储读不出（对象或它的元数据坏了）同样算包不可用，异常写进日志
 /// </remarks>
 /// <param name="scopes">作用域工厂</param>
@@ -130,15 +131,22 @@ public sealed partial class PluginCache(IServiceScopeFactory scopes, PluginsOpti
             var executables = $"runtimes/{RuntimeInformation.RuntimeIdentifier}/";
             foreach (var entry in archive.Entries.Where(static e => !e.FullName.EndsWith('/')))
             {
-                var destination = Path.GetFullPath(Path.Combine(staging, entry.FullName));
+                var runtime = entry.FullName.StartsWith(executables, StringComparison.Ordinal);
+                if (!runtime && entry.FullName.StartsWith("runtimes/", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                var destination = Path.GetFullPath(Path.Combine(staging, runtime ? entry.FullName[executables.Length..] : entry.FullName));
                 if (!destination.StartsWith(root, StringComparison.Ordinal))
                 {
                     return Unavailable(release);
                 }
 
                 Directory.CreateDirectory(Path.GetDirectoryName(destination)!);
+                // 安装时已核对过运行时文件不与根上的同名，这里撞上同样当包不可用
                 await entry.ExtractToFileAsync(destination, overwrite: false, cancellationToken).ConfigureAwait(false);
-                if (!OperatingSystem.IsWindows() && entry.FullName.StartsWith(executables, StringComparison.Ordinal))
+                if (!OperatingSystem.IsWindows() && runtime)
                 {
                     File.SetUnixFileMode(destination, File.GetUnixFileMode(destination) | UnixFileMode.UserExecute | UnixFileMode.GroupExecute | UnixFileMode.OtherExecute);
                 }

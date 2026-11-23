@@ -61,5 +61,6 @@
   "plugins.runtime.isolation_unavailable": "Dieser Server hat keinen Plugin-Host für die Isolation '{isolation}'.",
   "plugins.runtime.package_unavailable": "Das Paket des Plugins '{name}' in Version {version} fehlt im Dateispeicher oder stimmt nicht mehr mit seinem SHA-256 überein.",
   "plugins.delete_preview.title": "Plugin-Deinstallation vorab prüfen",
-  "plugins.delete_preview.description": "Listet auf, was die Deinstallation eines Plugins entfernt: die Berechtigungscodes aller Versionen und alle Verweise darauf (Rollen- und Benutzerfreigaben, Freigaberegeln, Bedingungen, Delegierungen, Ausschlussregeln, gesteuerte Menüknoten, Editions-Whitelists). Offene Berechtigungsanträge in Mandantendatenbanken werden aufgeführt, aber behalten."
+  "plugins.delete_preview.description": "Listet auf, was die Deinstallation eines Plugins entfernt: die Berechtigungscodes aller Versionen und alle Verweise darauf (Rollen- und Benutzerfreigaben, Freigaberegeln, Bedingungen, Delegierungen, Ausschlussregeln, gesteuerte Menüknoten, Editions-Whitelists). Offene Berechtigungsanträge in Mandantendatenbanken werden aufgeführt, aber behalten.",
+  "plugins.package.runtime_conflict": "Das Plugin-Paket enthält '{path}' sowohl im Stammverzeichnis als auch im Laufzeitverzeichnis dieses Servers."
 }

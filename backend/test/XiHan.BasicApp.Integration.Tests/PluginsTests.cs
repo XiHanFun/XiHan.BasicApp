@@ -285,6 +285,7 @@ public sealed class PluginsTests : IDisposable
             ("built-in package name", Package(descriptor: static d => d["name"] = "files"), PluginsErrors.NameInvalid, "name=files"),
             ("runtime not listed", Package(descriptor: static d => d["runtimes"] = new JsonArray("other-x64")), PluginsErrors.PackageInvalid, $"runtime={rid}"),
             ("entry missing", Package(files: f => f.Remove($"runtimes/{rid}/{Name}")), PluginsErrors.PackageInvalid, $"runtime={rid}"),
+            ("runtime file at the root too", Package(files: f => f[$"runtimes/{rid}/pages/forecast.json"] = [0x7B, 0x7D]), PluginsErrors.PackageInvalid, "path=pages/forecast.json"),
             ("locale missing", Package(files: static f => f.Remove("locales/ko-KR.json")), PluginsErrors.PackageInvalid, "locale=ko-KR"),
             ("operation outside the name", Package(manifest: static m => m["contributes"]!["operations"] = new JsonArray("weather.get", "files.list")), PluginsErrors.ContributionInvalid, "id=files.list;name=weather"),
             ("codes mismatch", Package(descriptor: static d => d["permissions"] = JsonNode.Parse("""[{"code":"weather.weather.write"}]""")), PluginsErrors.ContributionInvalid, null),

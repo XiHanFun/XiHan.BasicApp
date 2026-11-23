@@ -12,7 +12,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | --- | --- |
 | `xihan.manifest.json` | 框架清单：`kind` 为 `plugin`，写明 `isolation` 与 `entry`；`contributes.operations`、`contributes.permissions` 列出插件贡献的操作与权限码 |
 | `basicapp.plugin.json` | 旁挂清单：短名、发布方、运行时、权限码的作用侧与审计、页面、回调、扩展点 |
-| `runtimes/<运行时标识>/<entry>` | 进程外插件各平台的可执行文件；Windows 上入口没有扩展名时找 `<entry>.exe` |
+| `runtimes/<运行时标识>/` | 进程外插件各平台的构建产物，入口是其中的 `<entry>`；Windows 上入口没有扩展名时找 `<entry>.exe`。加载时当前平台的这一目录铺到插件目录的根上，与框架清单放在一起 |
 | `<entry>` | Wasm 插件的模块，在包根上 |
 | `locales/<区域>.json` | 10 种区域的前端文案 |
 | `pages/*.json` | 声明式页面的描述，由旁挂清单的 `pages[].view.file` 指向 |
@@ -56,7 +56,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 | 旁挂清单版本 | `pluginApi` 为 `1` | `PLUGINS_VALIDATION_102` |
 | 清单种类 | `kind` 为 `plugin` 且写了 `isolation`，隔离级别在 `BasicApp:Plugins:Isolations` 里，不贡献管道中间件 | `PLUGINS_VALIDATION_103` |
 | 短名 | 合 `^[a-z][a-z0-9-]{1,31}$`；不是内置包名，也不是 `plugins`、`installed`、`custom`、`system`、`api`、`embed` | `PLUGINS_VALIDATION_104` |
-| 入口 | 当前平台的运行时在 `runtimes` 里，可执行文件在包里；Wasm 查包根的模块 | `PLUGINS_VALIDATION_101` |
+| 入口 | 当前平台的运行时在 `runtimes` 里，可执行文件在包里，运行时目录里的文件不与包根上的同名；Wasm 查包根的模块 | `PLUGINS_VALIDATION_101` |
 | 文案 | 10 种区域的 `locales/<区域>.json` 都在 | `PLUGINS_VALIDATION_101` |
 | 操作 | 资源段等于短名或以 `<短名>-` 开头 | `PLUGINS_VALIDATION_105` |
 | 权限码 | 与框架清单的 `contributes.permissions` 是同一组；合 `<短名>.<资源>.<动作>`，资源段是本插件某个操作的资源段 | `PLUGINS_VALIDATION_105` |
@@ -105,7 +105,7 @@ Plugins 是 Tier 3 的可选模块（`BasicApp:Modules:Plugins:Enabled`，缺省
 
 | 环节 | 规则 |
 | --- | --- |
-| 解包 | 每个版本解到 `<CacheDirectory>/<清单 ID>/<版本 ID>/`，目录在就直接用；不在时从 Files 取包，按安装时的 SHA-256 核对后解开，对不上或存储读不出即 `PLUGINS_UNAVAILABLE_102` |
+| 解包 | 每个版本解到 `<CacheDirectory>/<清单 ID>/<版本 ID>/`，目录在就直接用；不在时从 Files 取包，按安装时的 SHA-256 核对后解开，对不上或存储读不出即 `PLUGINS_UNAVAILABLE_102`。当前平台的 `runtimes/<运行时标识>/` 铺到目录的根上，别的平台的不解 |
 | 加载 | 按隔离级别交给对应的插件宿主（没装该宿主即 `PLUGINS_UNAVAILABLE_101`），带上批准的授予（`callback:` 与 `data-scope:` 由 BasicApp 自己解释，不交给宿主）；成功后贡献的权限码等接进来（见下节） |
 | 重新加载 | 版本或授予变了先卸后载；换版本失败即重载旧版本，新版本的错误码留着 |
 | 停用、卸载 | 先撤回权限码与回调授予，再让宿主停掉插件；在途调用照常完成或以框架的 `PLUGINS_UNAVAILABLE_001` 结束 |

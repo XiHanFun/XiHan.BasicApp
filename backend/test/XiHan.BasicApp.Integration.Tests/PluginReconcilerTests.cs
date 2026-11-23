@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -115,8 +114,10 @@ public sealed class PluginReconcilerTests : IDisposable
         var load = Assert.Single(host.Loads);
         var version = (await DetailAsync(server, platform, id)).GetProperty("versions")[0].GetProperty("id").GetString()!;
         Assert.Equal(Path.Combine(CacheDirectory, PluginsTests.ManifestId, Guid.Parse(version).ToString("N")), load.Directory);
+        // 当前平台的运行时目录铺到根上，与框架清单放在一起：框架宿主按清单的 entry 相对插件目录找入口
         Assert.True(File.Exists(Path.Combine(load.Directory, "xihan.manifest.json")));
-        Assert.True(File.Exists(Path.Combine(load.Directory, "runtimes", RuntimeInformation.RuntimeIdentifier, PluginsTests.Name)));
+        Assert.True(File.Exists(Path.Combine(load.Directory, PluginsTests.Name)));
+        Assert.False(Directory.Exists(Path.Combine(load.Directory, "runtimes")));
         Assert.Equal([Cache, Config], [.. load.Grants.Order(StringComparer.Ordinal)]);
         var loaded = await StatusAsync(server, platform, id);
         Assert.Equal((true, "1.0.0", "Ready"), (loaded.GetProperty("isLoaded").GetBoolean(), loaded.GetProperty("loadedVersion").GetString(), loaded.GetProperty("state").GetString()));

@@ -61,5 +61,6 @@
   "plugins.runtime.isolation_unavailable": "Este servidor não tem um host de plugins para o isolamento '{isolation}'.",
   "plugins.runtime.package_unavailable": "O pacote do plugin '{name}' versão {version} não está no armazenamento de arquivos ou não corresponde mais ao seu SHA-256.",
   "plugins.delete_preview.title": "Pré-visualizar a desinstalação do plugin",
-  "plugins.delete_preview.description": "Lista o que a desinstalação de um plugin remove: os códigos de permissão de todas as suas versões e cada referência a eles (concessões a papéis e usuários, regras de concessão, condições, delegações, regras de exclusão mútua, nós de menu controlados, listas de permissões de edições). Solicitações de permissão pendentes nos bancos dos locatários são listadas, mas mantidas."
+  "plugins.delete_preview.description": "Lista o que a desinstalação de um plugin remove: os códigos de permissão de todas as suas versões e cada referência a eles (concessões a papéis e usuários, regras de concessão, condições, delegações, regras de exclusão mútua, nós de menu controlados, listas de permissões de edições). Solicitações de permissão pendentes nos bancos dos locatários são listadas, mas mantidas.",
+  "plugins.package.runtime_conflict": "O pacote do plugin tem '{path}' tanto na raiz quanto no diretório de runtime deste servidor."
 }
