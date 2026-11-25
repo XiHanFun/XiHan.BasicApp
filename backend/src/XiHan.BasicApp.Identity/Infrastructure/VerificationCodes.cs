@@ -4,6 +4,7 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using XiHan.BasicApp.Runtime.Security;
 using XiHan.Framework.Caching.Abstractions.Caches;
 using XiHan.Framework.Caching.Abstractions.Stores;
 using XiHan.Framework.Primitives;
@@ -17,14 +18,21 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// 单例服务，状态都在共享缓存里（多实例共用）。规则：6 位数字、有效期 <see cref="IdentityOptions.VerificationCodeLifetime"/>，
 /// 同一用途同一主体再发即覆盖旧码；同一用途同一目标两次发码至少隔 <see cref="IdentityOptions.VerificationCodeInterval"/>，
 /// 一个目标（邮箱 / 手机号）与一个客户端地址每天（UTC）各有上限、不分用途；输错 <see cref="IdentityOptions.VerificationCodeMaxFailures"/> 次即作废，
-/// 这一用途这一主体锁定 <see cref="IdentityOptions.VerificationCodeLockout"/>。缓存里只存码的 SHA-256，校验成功即删（先删再算成功，并发的两次只有一次过）
+/// 这一用途这一主体锁定 <see cref="IdentityOptions.VerificationCodeLockout"/>。校验成功即删（先删再算成功，并发的两次只有一次过）
+/// 码连同次数、到期与随码内容经 <see cref="ISecretProtector"/> 加密后才进缓存：6 位码的散列几秒就能穷举，能看缓存的人不能借它代收找回密码与登录的码
 /// </remarks>
 /// <param name="cache">共享缓存</param>
 /// <param name="options">身份配置</param>
 /// <param name="codes">码源（与图形验证码共用，测试换成固定码）</param>
 /// <param name="clock">时间源</param>
-public sealed class VerificationCodes(ISharedCache cache, IdentityOptions options, ICaptchaCodeSource codes, TimeProvider clock)
+/// <param name="protector">加密缓存里的码</param>
+public sealed class VerificationCodes(ISharedCache cache, IdentityOptions options, ICaptchaCodeSource codes, TimeProvider clock, ISecretProtector protector)
 {
+    /// <summary>
+    /// 缓存里码的加密用途
+    /// </summary>
+    public const string Purpose = "XiHan.BasicApp.Identity.VerificationCode";
+
     /// <summary>
     /// 码的长度
     /// </summary>
@@ -76,7 +84,7 @@ public sealed class VerificationCodes(ISharedCache cache, IdentityOptions option
         }
 
         var code = codes.Generate(CodeLength);
-        await cache.SetAsync(CodeKey(purpose, subject), Encode(new CodeState(HashOf(code), 0, now + options.VerificationCodeLifetime, payload)), CacheEntryOptions.Expires(options.VerificationCodeLifetime), cancellationToken).ConfigureAwait(false);
+        await cache.SetAsync(CodeKey(purpose, subject), Seal(new CodeState(code, 0, now + options.VerificationCodeLifetime, payload)), CacheEntryOptions.Expires(options.VerificationCodeLifetime), cancellationToken).ConfigureAwait(false);
         await cache.SetAsync(intervalKey, "1", CacheEntryOptions.Expires(options.VerificationCodeInterval), cancellationToken).ConfigureAwait(false);
         await IncrementAsync(targetKey, untilTomorrow, cancellationToken).ConfigureAwait(false);
         if (addressKey is { } counted)
@@ -109,12 +117,12 @@ public sealed class VerificationCodes(ISharedCache cache, IdentityOptions option
 
         var key = CodeKey(purpose, subject);
         var now = clock.GetUtcNow();
-        if (string.IsNullOrWhiteSpace(code) || !(await cache.GetAsync<string>(key, cancellationToken).ConfigureAwait(false)).TryGetValue(out var raw) || Decode(raw) is not { } state || state.ExpiresAt <= now)
+        if (string.IsNullOrWhiteSpace(code) || !(await cache.GetAsync<string>(key, cancellationToken).ConfigureAwait(false)).TryGetValue(out var raw) || Open(raw) is not { } state || state.ExpiresAt <= now)
         {
             return Invalid();
         }
 
-        if (!CryptographicOperations.FixedTimeEquals(Encoding.ASCII.GetBytes(state.Hash), Encoding.ASCII.GetBytes(HashOf(code.Trim()))))
+        if (!CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(state.Code), Encoding.UTF8.GetBytes(code.Trim())))
         {
             var failures = state.Failures + 1;
             if (failures >= options.VerificationCodeMaxFailures)
@@ -125,7 +133,7 @@ public sealed class VerificationCodes(ISharedCache cache, IdentityOptions option
             }
 
             // 只记次数，不顺延有效期
-            await cache.SetAsync(key, Encode(state with { Failures = failures }), CacheEntryOptions.Expires(state.ExpiresAt - now), cancellationToken).ConfigureAwait(false);
+            await cache.SetAsync(key, Seal(state with { Failures = failures }), CacheEntryOptions.Expires(state.ExpiresAt - now), cancellationToken).ConfigureAwait(false);
             return Invalid();
         }
 
@@ -154,8 +162,13 @@ public sealed class VerificationCodes(ISharedCache cache, IdentityOptions option
 
     private static string HashOf(string value) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 
+    private string Seal(CodeState state) => protector.Protect(Purpose, Encode(state));
+
+    // 解不开（密钥环换过、值被改过）按没有码处理
+    private CodeState? Open(string sealedState) => protector.TryUnprotect(Purpose, sealedState, out var raw) ? Decode(raw) : null;
+
     private static string Encode(CodeState state)
-        => string.Join('|', state.Hash, state.Failures.ToString(CultureInfo.InvariantCulture), state.ExpiresAt.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture), Convert.ToBase64String(Encoding.UTF8.GetBytes(state.Payload)));
+        => string.Join('|', state.Code, state.Failures.ToString(CultureInfo.InvariantCulture), state.ExpiresAt.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture), Convert.ToBase64String(Encoding.UTF8.GetBytes(state.Payload)));
 
     private static CodeState? Decode(string raw)
     {
@@ -165,5 +178,5 @@ public sealed class VerificationCodes(ISharedCache cache, IdentityOptions option
             : null;
     }
 
-    private sealed record CodeState(string Hash, int Failures, DateTimeOffset ExpiresAt, string Payload);
+    private sealed record CodeState(string Code, int Failures, DateTimeOffset ExpiresAt, string Payload);
 }

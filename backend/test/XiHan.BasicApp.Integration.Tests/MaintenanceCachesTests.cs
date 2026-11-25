@@ -21,7 +21,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 只开放各包登记的命名空间；按前缀分页列键（进程内的对象缓存与字节存储两层合起来、标出所在的层）、查看大小或类型与过期、按 UTF-8 或 JSON 看文本；
-/// 可改写的命名空间里改字节存储的值沿用过期，鉴权相关的只读、对象缓存的不能改；按键与按前缀删除两层；命名空间之外的键一律拒绝
+/// 可改写的命名空间里改字节存储的值沿用过期，鉴权相关的只读、身份的不回显、对象缓存的不能改；按键与按前缀删除两层；命名空间之外的键一律拒绝
 /// Redis（环境变量 <c>XIHAN_TEST_REDIS</c>，没设即跳过）下只有字节存储一层，前缀稀疏时 SCAN 一段可能一个都没有，列键在操作里攒满一页再返回
 /// </remarks>
 public sealed partial class MaintenanceCachesTests : IDisposable
@@ -57,13 +57,16 @@ public sealed partial class MaintenanceCachesTests : IDisposable
         await store.SetAsync(new CacheKey("notification:test:b"), Encoding.UTF8.GetBytes("world"), CacheEntryOptions.Default, CancellationToken.None);
         await store.SetAsync(new CacheKey("notification:test:bin"), new byte[] { 0xff, 0xfe, 0x00 }, CacheEntryOptions.Default, CancellationToken.None);
         await store.SetAsync(new CacheKey("access:test:x"), Encoding.UTF8.GetBytes("rule"), CacheEntryOptions.Default, CancellationToken.None);
+        await store.SetAsync(new CacheKey("identity:test:code"), Encoding.UTF8.GetBytes("123456"), CacheEntryOptions.Default, CancellationToken.None);
+        await cache.SetAsync(new CacheKey("identity:test:obj"), new Snapshot("ticket", 1), CacheEntryOptions.Default, CancellationToken.None);
         await store.SetAsync(new CacheKey("lock:test"), Encoding.UTF8.GetBytes("framework"), CacheEntryOptions.Default, CancellationToken.None);
 
-        // 命名空间：各包登记的前缀，鉴权相关的只读
+        // 命名空间：各包登记的前缀，鉴权相关的只读，身份的不回显
         var (_, namespaces) = await SendAsync(server, HttpMethod.Get, "/api/caches:namespaces", null, platform);
-        var registered = namespaces.GetProperty("items").EnumerateArray().ToDictionary(static n => n.GetProperty("prefix").GetString()!, static n => n.GetProperty("editable").GetBoolean());
-        Assert.False(registered["access:"]);
-        Assert.True(registered["notification:"]);
+        var registered = namespaces.GetProperty("items").EnumerateArray().ToDictionary(static n => n.GetProperty("prefix").GetString()!, static n => n.GetProperty("values").GetString());
+        Assert.Equal("ReadOnly", registered["access:"]);
+        Assert.Equal("Editable", registered["notification:"]);
+        Assert.Equal("Hidden", registered["identity:"]);
         Assert.DoesNotContain("lock:", registered.Keys);
 
         // 列键：两层合起来分页（先对象缓存、再字节存储），每个键标出所在的层；续页标记认不出与命名空间之外的前缀拒绝
@@ -97,7 +100,13 @@ public sealed partial class MaintenanceCachesTests : IDisposable
         Assert.Equal("""{"name":"demo","count":3}""", objectEntry.GetProperty("text").GetString());
         Assert.InRange(objectEntry.GetProperty("timeToLiveSeconds").GetInt64(), 1, 3600);
         var (_, binary) = await SendAsync(server, HttpMethod.Get, "/api/caches:inspect?key=notification:test:bin", null, platform);
-        Assert.Equal((JsonValueKind.Null, false), (binary.GetProperty("text").ValueKind, binary.GetProperty("editable").GetBoolean()));
+        Assert.Equal((JsonValueKind.Null, false, false), (binary.GetProperty("text").ValueKind, binary.GetProperty("editable").GetBoolean(), binary.GetProperty("hidden").GetBoolean()));
+        // 不回显的命名空间：两层都只给大小或类型与过期，不给值
+        var (_, hidden) = await SendAsync(server, HttpMethod.Get, "/api/caches:inspect?key=identity:test:code", null, platform);
+        Assert.Equal((JsonValueKind.Null, 6L, false, true), (hidden.GetProperty("text").ValueKind, hidden.GetProperty("size").GetInt64(), hidden.GetProperty("editable").GetBoolean(), hidden.GetProperty("hidden").GetBoolean()));
+        var (_, hiddenObject) = await SendAsync(server, HttpMethod.Get, "/api/caches:inspect?key=identity:test:obj", null, platform);
+        Assert.Equal(("Objects", JsonValueKind.Null, true), (hiddenObject.GetProperty("layer").GetString(), hiddenObject.GetProperty("text").ValueKind, hiddenObject.GetProperty("hidden").GetBoolean()));
+        Assert.EndsWith("+Snapshot", hiddenObject.GetProperty("typeName").GetString(), StringComparison.Ordinal);
         Assert.Equal("MAINTENANCE_NOTFOUND_003", (await SendAsync(server, HttpMethod.Get, "/api/caches:inspect?key=notification:test:none", null, platform)).Body.GetProperty("code").GetString());
 
         // 改写：沿用过期；只读命名空间、非文本、命名空间之外的键各自拒绝

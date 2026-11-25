@@ -10,12 +10,45 @@ namespace XiHan.BasicApp.Contracts.Caching;
 /// </summary>
 /// <remarks>
 /// 缓存管理（Maintenance）只开放登记过的前缀下的键，框架自己的键（如分布式锁）不出现
-/// 鉴权相关的命名空间（授权、身份、开放平台签名、套餐门控）登记为不可改写，删除仍可（删了只是让缓存按需重建）
+/// 鉴权相关的命名空间（授权、开放平台签名、套餐门控）登记为只读，删除仍可（删了只是让缓存按需重建）
+/// 身份的缓存里是登录与找回流程的票据、验证码与节流计数，看到值就可能冒用，登记为不回显：只列键与过期，不给值
 /// </remarks>
 /// <param name="Package">包名（小写）</param>
 /// <param name="Prefix">键前缀，以 <c>:</c> 结尾，如 <c>access:</c></param>
-/// <param name="Editable">能否在缓存管理里改写值</param>
-public sealed record CacheNamespace(string Package, string Prefix, bool Editable);
+/// <param name="Values">缓存管理里能对值做什么</param>
+public sealed record CacheNamespace(string Package, string Prefix, CacheValueAccess Values)
+{
+    /// <summary>
+    /// 能否在缓存管理里改写值
+    /// </summary>
+    public bool Editable => Values == CacheValueAccess.Editable;
+
+    /// <summary>
+    /// 缓存管理里是否不给值
+    /// </summary>
+    public bool Hidden => Values == CacheValueAccess.Hidden;
+}
+
+/// <summary>
+/// 缓存管理里对值的权限
+/// </summary>
+public enum CacheValueAccess
+{
+    /// <summary>
+    /// 能看、能改写
+    /// </summary>
+    Editable = 0,
+
+    /// <summary>
+    /// 能看、不能改写
+    /// </summary>
+    ReadOnly = 1,
+
+    /// <summary>
+    /// 不回显
+    /// </summary>
+    Hidden = 2,
+}
 
 /// <summary>
 /// 缓存键命名空间的登记
@@ -28,10 +61,10 @@ public static class CacheNamespaceServiceCollectionExtensions
     /// <remarks>
     /// 前缀是包名加 <c>:</c>
     /// </remarks>
-    public static IServiceCollection AddCacheNamespace(this IServiceCollection services, string package, bool editable)
+    public static IServiceCollection AddCacheNamespace(this IServiceCollection services, string package, CacheValueAccess values)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentException.ThrowIfNullOrWhiteSpace(package);
-        return services.AddSingleton(new CacheNamespace(package, package + ":", editable));
+        return services.AddSingleton(new CacheNamespace(package, package + ":", values));
     }
 }

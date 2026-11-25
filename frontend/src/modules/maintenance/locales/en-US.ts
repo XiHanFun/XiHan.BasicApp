@@ -192,7 +192,9 @@ export default {
       namespace_placeholder: 'Select a namespace',
       namespace_option: '{prefix} · {name}',
       namespace_option_read_only: '{prefix} · {name} (read-only)',
+      namespace_option_hidden: '{prefix} · {name} (values hidden)',
       read_only: 'Read-only',
+      hidden: 'Value hidden',
       sub_prefix: 'Sub-prefix',
       sub_prefix_placeholder: 'Sub-prefix (optional)',
       search_by_prefix: 'Search by prefix',
@@ -215,6 +217,8 @@ export default {
       never_expire: 'Never expires',
       no_sliding: 'None',
       read_only_hint: 'Authentication-related caches cannot be modified, only deleted (they are rebuilt on demand)',
+      hidden_title: 'Value hidden',
+      hidden_hint: 'Identity caches hold sign-in and recovery tickets, verification codes and counters that could be misused if seen; only the size and expiry are shown. The entry can still be deleted',
       binary_title: 'Preview unavailable',
       binary_hint: 'The value is not UTF-8 text and cannot be previewed or modified',
       // 两层：进程内的对象缓存与字节存储

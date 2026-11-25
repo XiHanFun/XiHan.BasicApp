@@ -7970,7 +7970,7 @@
                       "format": "int64"
                     },
                     "text": {
-                      "description": "\u5B57\u8282\u5B58\u50A8\u7684\u8F7D\u8377\u6309 UTF-8 \u89E3\u51FA\u7684\u6587\u672C\uFF0C\u5BF9\u8C61\u7F13\u5B58\u7684\u503C\u6309 JSON \u5199\u51FA\uFF1B\u4E0D\u662F\u5408\u6CD5 UTF-8 \u6216\u5199\u4E0D\u51FA JSON \u65F6\u4E3A\u7A7A",
+                      "description": "\u5B57\u8282\u5B58\u50A8\u7684\u8F7D\u8377\u6309 UTF-8 \u89E3\u51FA\u7684\u6587\u672C\uFF0C\u5BF9\u8C61\u7F13\u5B58\u7684\u503C\u6309 JSON \u5199\u51FA\uFF1B\u4E0D\u662F\u5408\u6CD5 UTF-8\u3001\u5199\u4E0D\u51FA JSON \u6216\u4E0D\u56DE\u663E\u65F6\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -7979,12 +7979,17 @@
                     "editable": {
                       "description": "\u80FD\u5426\u6539\u5199\uFF08\u5B57\u8282\u5B58\u50A8\u91CC\u3001\u547D\u540D\u7A7A\u95F4\u5141\u8BB8\u4E14\u8F7D\u8377\u662F\u6587\u672C\uFF09",
                       "type": "boolean"
+                    },
+                    "hidden": {
+                      "description": "\u547D\u540D\u7A7A\u95F4\u767B\u8BB0\u4E3A\u4E0D\u56DE\u663E\uFF0C\u4E0D\u7ED9\u503C",
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "key",
                     "layer",
-                    "editable"
+                    "editable",
+                    "hidden"
                   ]
                 }
               }
@@ -8146,7 +8151,7 @@
                       "format": "int64"
                     },
                     "text": {
-                      "description": "\u5B57\u8282\u5B58\u50A8\u7684\u8F7D\u8377\u6309 UTF-8 \u89E3\u51FA\u7684\u6587\u672C\uFF0C\u5BF9\u8C61\u7F13\u5B58\u7684\u503C\u6309 JSON \u5199\u51FA\uFF1B\u4E0D\u662F\u5408\u6CD5 UTF-8 \u6216\u5199\u4E0D\u51FA JSON \u65F6\u4E3A\u7A7A",
+                      "description": "\u5B57\u8282\u5B58\u50A8\u7684\u8F7D\u8377\u6309 UTF-8 \u89E3\u51FA\u7684\u6587\u672C\uFF0C\u5BF9\u8C61\u7F13\u5B58\u7684\u503C\u6309 JSON \u5199\u51FA\uFF1B\u4E0D\u662F\u5408\u6CD5 UTF-8\u3001\u5199\u4E0D\u51FA JSON \u6216\u4E0D\u56DE\u663E\u65F6\u4E3A\u7A7A",
                       "type": [
                         "string",
                         "null"
@@ -8155,12 +8160,17 @@
                     "editable": {
                       "description": "\u80FD\u5426\u6539\u5199\uFF08\u5B57\u8282\u5B58\u50A8\u91CC\u3001\u547D\u540D\u7A7A\u95F4\u5141\u8BB8\u4E14\u8F7D\u8377\u662F\u6587\u672C\uFF09",
                       "type": "boolean"
+                    },
+                    "hidden": {
+                      "description": "\u547D\u540D\u7A7A\u95F4\u767B\u8BB0\u4E3A\u4E0D\u56DE\u663E\uFF0C\u4E0D\u7ED9\u503C",
+                      "type": "boolean"
                     }
                   },
                   "required": [
                     "key",
                     "layer",
-                    "editable"
+                    "editable",
+                    "hidden"
                   ]
                 }
               }
@@ -67642,15 +67652,23 @@
             "description": "\u952E\u524D\u7F00\uFF0C\u5982 access:",
             "type": "string"
           },
-          "editable": {
-            "description": "\u80FD\u5426\u6539\u5199\u503C\uFF08\u9274\u6743\u76F8\u5173\u7684\u53EA\u8BB8\u5220\uFF09",
-            "type": "boolean"
+          "values": {
+            "description": "\u5BF9\u503C\u80FD\u505A\u4EC0\u4E48\uFF1A\u9274\u6743\u76F8\u5173\u7684\u53EA\u8BFB\uFF08\u53EA\u8BB8\u5220\uFF09\uFF0C\u8EAB\u4EFD\u7684\u4E0D\u56DE\u663E\uFF08\u53EA\u5217\u952E\u4E0E\u8FC7\u671F\uFF09",
+            "$ref": "#/components/schemas/CacheValueAccess"
           }
         },
         "required": [
           "package",
           "prefix",
-          "editable"
+          "values"
+        ]
+      },
+      "CacheValueAccess": {
+        "type": "string",
+        "enum": [
+          "Editable",
+          "ReadOnly",
+          "Hidden"
         ]
       },
       "ChatAssistantItem": {

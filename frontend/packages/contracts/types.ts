@@ -11423,9 +11423,11 @@ export interface components {
             package: string;
             /** @description 键前缀，如 access: */
             prefix: string;
-            /** @description 能否改写值（鉴权相关的只许删） */
-            editable: boolean;
+            /** @description 对值能做什么：鉴权相关的只读（只许删），身份的不回显（只列键与过期） */
+            values: components["schemas"]["CacheValueAccess"];
         };
+        /** @enum {string} */
+        CacheValueAccess: "Editable" | "ReadOnly" | "Hidden";
         /** @description 可用的助手 */
         ChatAssistantItem: {
             /**
@@ -21469,10 +21471,12 @@ export interface operations {
                          * @description 滑动过期的秒数；没有为空
                          */
                         slidingSeconds?: number | null;
-                        /** @description 字节存储的载荷按 UTF-8 解出的文本，对象缓存的值按 JSON 写出；不是合法 UTF-8 或写不出 JSON 时为空 */
+                        /** @description 字节存储的载荷按 UTF-8 解出的文本，对象缓存的值按 JSON 写出；不是合法 UTF-8、写不出 JSON 或不回显时为空 */
                         text?: string | null;
                         /** @description 能否改写（字节存储里、命名空间允许且载荷是文本） */
                         editable: boolean;
+                        /** @description 命名空间登记为不回显，不给值 */
+                        hidden: boolean;
                     };
                 };
             };
@@ -21607,10 +21611,12 @@ export interface operations {
                          * @description 滑动过期的秒数；没有为空
                          */
                         slidingSeconds?: number | null;
-                        /** @description 字节存储的载荷按 UTF-8 解出的文本，对象缓存的值按 JSON 写出；不是合法 UTF-8 或写不出 JSON 时为空 */
+                        /** @description 字节存储的载荷按 UTF-8 解出的文本，对象缓存的值按 JSON 写出；不是合法 UTF-8、写不出 JSON 或不回显时为空 */
                         text?: string | null;
                         /** @description 能否改写（字节存储里、命名空间允许且载荷是文本） */
                         editable: boolean;
+                        /** @description 命名空间登记为不回显，不给值 */
+                        hidden: boolean;
                     };
                 };
             };

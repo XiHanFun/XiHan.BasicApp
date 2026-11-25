@@ -192,7 +192,9 @@ export default {
       namespace_placeholder: 'Namensraum auswählen',
       namespace_option: '{prefix} · {name}',
       namespace_option_read_only: '{prefix} · {name} (schreibgeschützt)',
+      namespace_option_hidden: '{prefix} · {name} (Werte verborgen)',
       read_only: 'Schreibgeschützt',
+      hidden: 'Wert verborgen',
       sub_prefix: 'Unterpräfix',
       sub_prefix_placeholder: 'Unterpräfix (optional)',
       search_by_prefix: 'Nach Präfix suchen',
@@ -215,6 +217,8 @@ export default {
       never_expire: 'Läuft nie ab',
       no_sliding: 'Keiner',
       read_only_hint: 'Authentifizierungsrelevante Caches können nicht geändert, nur gelöscht werden (sie werden bei Bedarf neu aufgebaut)',
+      hidden_title: 'Wert verborgen',
+      hidden_hint: 'Identitäts-Caches enthalten Anmelde- und Wiederherstellungstickets, Bestätigungscodes und Zähler, die missbraucht werden könnten; angezeigt werden nur Größe und Ablauf. Der Eintrag kann weiterhin gelöscht werden',
       binary_title: 'Keine Vorschau möglich',
       binary_hint: 'Der Wert ist kein UTF-8-Text und kann weder angezeigt noch geändert werden',
       // 两层：进程内的对象缓存与字节存储

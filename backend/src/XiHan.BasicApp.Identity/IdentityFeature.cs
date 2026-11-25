@@ -127,7 +127,7 @@ public sealed class IdentityFeature : IFeature
         // 权限目录与页面登记：Access 汇总成权限目录、菜单种子与 auth.permissions 的菜单树
         context.Services.AddPermissionCatalog("identity", IdentityPermissions.All);
         // 缓存管理只开放登记过的命名空间；验证码、会话与两步验证的缓存，属鉴权数据，只许删、不许改写
-        context.Services.AddCacheNamespace("identity", editable: false);
+        context.Services.AddCacheNamespace("identity", CacheValueAccess.Hidden);
         context.Services.AddPageCatalog("identity", IdentityPages.All);
         // 内建参数：Settings 据此写参数种子
         context.Services.AddConfigCatalog("identity", [LoginMethods.Config, PasswordSettings.Config, ImpersonationSettings.Config]);

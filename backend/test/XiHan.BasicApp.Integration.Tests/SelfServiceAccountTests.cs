@@ -3,6 +3,8 @@
 
 using System.Collections.Concurrent;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,6 +12,8 @@ using XiHan.BasicApp.Identity;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Integration.Tests.Infrastructure;
 using XiHan.BasicApp.Notification.Infrastructure;
+using XiHan.Framework.Caching.Abstractions.Caches;
+using XiHan.Framework.Caching.Abstractions.Stores;
 
 namespace XiHan.BasicApp.Integration.Tests;
 
@@ -18,7 +22,7 @@ namespace XiHan.BasicApp.Integration.Tests;
 /// </summary>
 /// <remarks>
 /// 注册缺省关、配置打开后注册平台账号（立即可登录、不带角色，配了邮件发欢迎邮件），登录名与邮箱不能重复；
-/// 找回密码按邮箱或已验证的手机号发码，账号不存在也回答已发送而不发；码对即设新密码、吊销全部会话，码用过作废，密码不合格不消费码
+/// 找回密码按邮箱或已验证的手机号发码，账号不存在也回答已发送而不发；缓存里的码是密文；码对即设新密码、吊销全部会话，码用过作废，密码不合格不消费码
 /// </remarks>
 public sealed class SelfServiceAccountTests : IDisposable
 {
@@ -147,6 +151,17 @@ public sealed class SelfServiceAccountTests : IDisposable
         var mail = await MailToAsync("ann@example.com");
         Assert.Contains(Code, mail.Body, StringComparison.Ordinal);
         Assert.Contains("找回密码", mail.Subject + mail.Body, StringComparison.Ordinal);
+
+        // 缓存里的码是密文（查无此人的那一次也签了码、只是不发）：看得到缓存的人既读不出码，也拿不到能穷举的散列
+        var codeKeys = (await SendAsync(server, HttpMethod.Get, "/api/caches:keys?prefix=identity:code:", null, platform)).Body.GetProperty("items").EnumerateArray().Select(static k => k.GetProperty("key").GetString()!).ToList();
+        Assert.Equal(2, codeKeys.Count);
+        foreach (var codeKey in codeKeys)
+        {
+            Assert.True((await server.Services.GetRequiredService<ISharedCache>().GetAsync<string>(new CacheKey(codeKey), CancellationToken.None)).TryGetValue(out var cached));
+            Assert.StartsWith("dp:", cached, StringComparison.Ordinal);
+            Assert.DoesNotContain(Code, cached, StringComparison.Ordinal);
+            Assert.DoesNotContain(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Code))), cached, StringComparison.OrdinalIgnoreCase);
+        }
 
         // 发送记录不留码：响应不带正文、库里也清空、不能重发。码等于账号的钥匙，读记录的权限不能拿它接管账号
         var record = await VerificationRecordAsync(server, platform);

@@ -68,7 +68,7 @@ public sealed class SettingsFeature : IFeature
         context.Services.AddSingleton<ConfigEntries>();
         context.Services.AddSingleton<DictOptionSets>();
         context.Services.AddSingleton<DictCatalog>();
-        context.Services.AddCacheNamespace("settings", editable: false);
+        context.Services.AddCacheNamespace("settings", CacheValueAccess.ReadOnly);
         context.Services.AddScoped<IConfigValueReader, ConfigValueReader>();
         context.Services.AddScoped<DictService>();
         context.Services.AddScoped<NumberingRuleService>();

@@ -192,7 +192,9 @@ export default {
       namespace_placeholder: '네임스페이스 선택',
       namespace_option: '{prefix} · {name}',
       namespace_option_read_only: '{prefix} · {name} (읽기 전용)',
+      namespace_option_hidden: '{prefix} · {name} (값 숨김)',
       read_only: '읽기 전용',
+      hidden: '값 숨김',
       sub_prefix: '하위 접두사',
       sub_prefix_placeholder: '하위 접두사(선택)',
       search_by_prefix: '접두사로 검색',
@@ -215,6 +217,8 @@ export default {
       never_expire: '만료 없음',
       no_sliding: '없음',
       read_only_hint: '인증 관련 캐시는 수정할 수 없고 삭제만 할 수 있어요(삭제 후 필요할 때 다시 만들어져요)',
+      hidden_title: '값을 표시하지 않아요',
+      hidden_hint: '신원 캐시에는 로그인·복구 티켓, 인증 코드, 카운터가 들어 있어 값이 보이면 악용될 수 있어요. 크기와 만료만 보여 주며 삭제는 할 수 있어요',
       binary_title: '미리 볼 수 없어요',
       binary_hint: '값이 UTF-8 텍스트가 아니라서 미리 보거나 수정할 수 없어요',
       // 两层：进程内的对象缓存与字节存储

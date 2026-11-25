@@ -168,7 +168,7 @@ public sealed class AccessFeature : IFeature
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         AccessFieldSecurity.Register(context.Services);
         // 缓存管理只开放登记过的命名空间；授权规则、指派与封禁的缓存，改写会让判定与库不一致，只许删、不许改写
-        context.Services.AddCacheNamespace("access", editable: false);
+        context.Services.AddCacheNamespace("access", CacheValueAccess.ReadOnly);
         context.Services.AddPageCatalog("access", AccessPages.All);
         context.Services.AddPageCatalog(AccessPages.AboutPackage, AccessPages.About);
         context.Services.AddConfigCatalog("access", [LoginAutoBanSettings.Config]);

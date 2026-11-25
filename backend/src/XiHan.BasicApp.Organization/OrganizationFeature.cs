@@ -73,7 +73,7 @@ public sealed class OrganizationFeature : IFeature
         context.Services.AddScoped<DepartmentService>();
         context.Services.AddScoped<MembershipService>();
         context.Services.AddScoped<DepartmentSnapshots>();
-        context.Services.AddCacheNamespace("organization", editable: false);
+        context.Services.AddCacheNamespace("organization", CacheValueAccess.ReadOnly);
         context.Services.AddScoped<PositionQueries>();
         context.Services.AddScoped<MembershipQueries>();
         // 第一个领域事件（方案 D7）：部门归属的加入与移出随写入进发件箱，信封的 subject 是用户

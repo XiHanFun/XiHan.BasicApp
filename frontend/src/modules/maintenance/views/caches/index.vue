@@ -535,9 +535,9 @@ onMounted(async () => {
                   {{ formatSize(entry.size) }}
                 </XhTagLabel>
               </XhTagRoot>
-              <XhTagRoot v-if="reason === 'read-only'" variant="subtle" size="sm" tone="warning">
+              <XhTagRoot v-if="reason === 'read-only' || reason === 'hidden'" variant="subtle" size="sm" tone="warning">
                 <XhTagLabel>
-                  {{ t('maintenance.caches.read_only') }}
+                  {{ reason === 'hidden' ? t('maintenance.caches.hidden') : t('maintenance.caches.read_only') }}
                 </XhTagLabel>
               </XhTagRoot>
               <XSegmented v-if="valueText !== null && !editing" v-model:value="format" :options="[{ value: 'text', label: 'Text' }, { value: 'json', label: 'Json' }]" size="sm" :aria-label="t('maintenance.caches.cache_content')" />
@@ -609,8 +609,18 @@ onMounted(async () => {
                   <p v-else-if="reason === 'object' || reason === 'unrenderable'" class="cache-hint">
                     {{ t('maintenance.caches.object_hint') }}
                   </p>
+                  <!-- 不回显的命名空间：只给大小与过期，仍可删除 -->
+                  <div v-if="reason === 'hidden'" class="cache-empty">
+                    <XhEmptyStateRoot>
+                      <XhEmptyStateIndicator>
+                        <Icon icon="lucide:eye-off" width="28" height="28" />
+                      </XhEmptyStateIndicator>
+                      <XhEmptyStateTitle>{{ t('maintenance.caches.hidden_title') }}</XhEmptyStateTitle>
+                      <XhEmptyStateDescription>{{ t('maintenance.caches.hidden_hint') }}</XhEmptyStateDescription>
+                    </XhEmptyStateRoot>
+                  </div>
                   <!-- 二进制值：不能预览也不能改写，仍可删除 -->
-                  <div v-if="reason === 'binary' || reason === 'unrenderable'" class="cache-empty">
+                  <div v-else-if="reason === 'binary' || reason === 'unrenderable'" class="cache-empty">
                     <XhEmptyStateRoot>
                       <XhEmptyStateIndicator>
                         <Icon icon="lucide:binary" width="28" height="28" />

@@ -192,7 +192,9 @@ export default {
       namespace_placeholder: '选择命名空间',
       namespace_option: '{prefix} · {name}',
       namespace_option_read_only: '{prefix} · {name}（只读）',
+      namespace_option_hidden: '{prefix} · {name}（不回显）',
       read_only: '只读',
+      hidden: '不回显',
       sub_prefix: '子前缀',
       sub_prefix_placeholder: '子前缀（可选）',
       search_by_prefix: '按前缀搜索',
@@ -215,6 +217,8 @@ export default {
       never_expire: '永不过期',
       no_sliding: '无',
       read_only_hint: '鉴权相关的缓存禁止改写，只能删除（删除后按需重建）',
+      hidden_title: '值不回显',
+      hidden_hint: '身份缓存里是登录与找回流程的票据、验证码与计数，看到值就可能冒用，只显示大小与过期；可以删除',
       binary_title: '无法预览',
       binary_hint: '值不是 UTF-8 文本，不能预览或改写',
       // 两层：进程内的对象缓存与字节存储

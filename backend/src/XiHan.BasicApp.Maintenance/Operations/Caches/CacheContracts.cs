@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.ComponentModel.DataAnnotations;
+using XiHan.BasicApp.Contracts.Caching;
 using XiHan.Framework.Caching.Abstractions.Stores;
 
 namespace XiHan.BasicApp.Maintenance.Operations.Caches;
@@ -16,8 +17,8 @@ public sealed record CacheNamespacesRequest;
 /// </summary>
 /// <param name="Package">登记它的包</param>
 /// <param name="Prefix">键前缀，如 <c>access:</c></param>
-/// <param name="Editable">能否改写值（鉴权相关的只许删）</param>
-public sealed record CacheNamespaceResponse(string Package, string Prefix, bool Editable);
+/// <param name="Values">对值能做什么：鉴权相关的只读（只许删），身份的不回显（只列键与过期）</param>
+public sealed record CacheNamespaceResponse(string Package, string Prefix, CacheValueAccess Values);
 
 /// <summary>
 /// 开放的缓存键命名空间
@@ -84,9 +85,10 @@ public sealed record CacheKeyRequest([Required, StringLength(CacheKey.MaxLength,
 /// <param name="Size">载荷字节数；对象缓存的为空</param>
 /// <param name="TimeToLiveSeconds">剩余存活秒数；不过期为空</param>
 /// <param name="SlidingSeconds">滑动过期的秒数；没有为空</param>
-/// <param name="Text">字节存储的载荷按 UTF-8 解出的文本，对象缓存的值按 JSON 写出；不是合法 UTF-8 或写不出 JSON 时为空</param>
+/// <param name="Text">字节存储的载荷按 UTF-8 解出的文本，对象缓存的值按 JSON 写出；不是合法 UTF-8、写不出 JSON 或不回显时为空</param>
 /// <param name="Editable">能否改写（字节存储里、命名空间允许且载荷是文本）</param>
-public sealed record CacheEntryResponse(string Key, CacheLayer Layer, string? TypeName, long? Size, long? TimeToLiveSeconds, long? SlidingSeconds, string? Text, bool Editable);
+/// <param name="Hidden">命名空间登记为不回显，不给值</param>
+public sealed record CacheEntryResponse(string Key, CacheLayer Layer, string? TypeName, long? Size, long? TimeToLiveSeconds, long? SlidingSeconds, string? Text, bool Editable, bool Hidden);
 
 /// <summary>
 /// <c>caches.update</c> 的请求

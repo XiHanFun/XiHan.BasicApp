@@ -192,7 +192,9 @@ export default {
       namespace_placeholder: '名前空間を選択',
       namespace_option: '{prefix} · {name}',
       namespace_option_read_only: '{prefix} · {name}（読み取り専用）',
+      namespace_option_hidden: '{prefix} · {name}（値は非表示）',
       read_only: '読み取り専用',
+      hidden: '値は非表示',
       sub_prefix: 'サブプレフィックス',
       sub_prefix_placeholder: 'サブプレフィックス（任意）',
       search_by_prefix: 'プレフィックスで検索',
@@ -215,6 +217,8 @@ export default {
       never_expire: '無期限',
       no_sliding: 'なし',
       read_only_hint: '認証に関わるキャッシュは変更できず、削除のみ可能です（削除後は必要に応じて再構築されます）',
+      hidden_title: '値は表示されません',
+      hidden_hint: 'ID キャッシュにはサインインと復旧のチケット、確認コード、カウンターが入っており、値を見られると悪用されるおそれがあるため、サイズと有効期限のみ表示します。削除はできます',
       binary_title: 'プレビューできません',
       binary_hint: '値が UTF-8 テキストではないため、プレビューや変更はできません',
       // 两层：进程内的对象缓存与字节存储

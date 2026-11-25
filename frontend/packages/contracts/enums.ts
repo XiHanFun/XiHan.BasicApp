@@ -28,6 +28,9 @@ export type BotProvider = (typeof BotProvider)[number]
 export const CacheLayer = ['Store', 'Objects'] as const
 export type CacheLayer = (typeof CacheLayer)[number]
 
+export const CacheValueAccess = ['Editable', 'ReadOnly', 'Hidden'] as const
+export type CacheValueAccess = (typeof CacheValueAccess)[number]
+
 export const ChatCallEndReason = ['Completed', 'Cancelled', 'Rejected', 'Missed', 'Interrupted'] as const
 export type ChatCallEndReason = (typeof ChatCallEndReason)[number]
 
@@ -394,6 +397,7 @@ export const enums = {
   Architecture,
   BotProvider,
   CacheLayer,
+  CacheValueAccess,
   ChatCallEndReason,
   ChatCallMedia,
   ChatCallParticipantStatus,

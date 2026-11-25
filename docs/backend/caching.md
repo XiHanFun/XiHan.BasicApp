@@ -46,17 +46,18 @@
 
 ### 命名空间与缓存管理
 
-每个包用 `AddCacheNamespace(包名, editable)` 登记键前缀 `<包名>:`。缓存管理只开放登记过的前缀，框架自己的键（如分布式锁）不出现：
+每个包用 `AddCacheNamespace(包名, CacheValueAccess)` 登记键前缀 `<包名>:` 与缓存管理里对值的权限（`Editable` 能看能改、`ReadOnly` 只能看、`Hidden` 不给值）。缓存管理只开放登记过的前缀，框架自己的键（如分布式锁）不出现：
 
-| 命名空间 | 能否改写值 |
+| 命名空间 | 对值的权限 |
 | --- | --- |
-| `access:`、`identity:`、`tenancy:`、`openplatform:` | 否（鉴权、签名与套餐门控相关） |
-| `settings:`、`organization:` | 否（参数里有密文，部门数据要整份一致） |
-| `ai:` | 否（提供商目录的戳键） |
-| `realtime:`（配了 Redis 时才有） | 否（在线状态） |
-| `notification:`、`printing:` | 是 |
+| `identity:` | 不回显（登录与找回流程的票据、验证码与节流计数，看到值就可能冒用；只列键、大小与过期） |
+| `access:`、`tenancy:`、`openplatform:` | 只读（鉴权、签名与套餐门控相关） |
+| `settings:`、`organization:` | 只读（参数里有密文，部门数据要整份一致） |
+| `ai:` | 只读（提供商目录的戳键） |
+| `realtime:`（配了 Redis 时才有） | 只读（在线状态） |
+| `notification:`、`printing:` | 能改写 |
 
-不可改写的命名空间仍可删除，删除后缓存按需重建。
+只读与不回显的命名空间仍可删除，删除后缓存按需重建。
 
 缓存管理在 Maintenance 包，权限码只在平台一侧：
 

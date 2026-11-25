@@ -98,9 +98,10 @@ function deferred() {
 }
 
 const NAMESPACES: CacheNamespace[] = [
-  { package: 'access', prefix: 'access:', editable: false },
-  { package: 'notification', prefix: 'notification:', editable: true },
-  { package: 'billing', prefix: 'billing:', editable: true },
+  { package: 'access', prefix: 'access:', values: 'ReadOnly' },
+  { package: 'identity', prefix: 'identity:', values: 'Hidden' },
+  { package: 'notification', prefix: 'notification:', values: 'Editable' },
+  { package: 'billing', prefix: 'billing:', values: 'Editable' },
 ]
 
 function entry(patch: Partial<CacheEntry> = {}): CacheEntry {
@@ -113,6 +114,7 @@ function entry(patch: Partial<CacheEntry> = {}): CacheEntry {
     slidingSeconds: null,
     text: '{"a":1}',
     editable: true,
+    hidden: false,
     ...patch,
   }
 }
@@ -121,12 +123,13 @@ function entry(patch: Partial<CacheEntry> = {}): CacheEntry {
 const stored = (...keys: string[]) => keys.map(key => ({ key, layer: 'Store' as const }))
 
 describe('缓存管理：命名空间', () => {
-  it('包名写出文案（不认得的原样），选项值是前缀、文本是前缀加包名，不可改写的标只读', async () => {
+  it('包名写出文案（不认得的原样），选项值是前缀、文本是前缀加包名，不可改写的标只读、不回显的标不回显', async () => {
     expect(packageLabel(t, 'access')).toBe('maintenance.caches.packages.access')
     expect(packageLabel(t, 'printing')).toBe('maintenance.caches.packages.printing')
     expect(packageLabel(t, 'billing')).toBe('billing')
     expect(namespaceOptions(t, NAMESPACES)).toEqual([
       { value: 'access:', label: 'maintenance.caches.namespace_option_read_only:{"prefix":"access:","name":"maintenance.caches.packages.access"}' },
+      { value: 'identity:', label: 'maintenance.caches.namespace_option_hidden:{"prefix":"identity:","name":"maintenance.caches.packages.identity"}' },
       { value: 'notification:', label: 'maintenance.caches.namespace_option:{"prefix":"notification:","name":"maintenance.caches.packages.notification"}' },
       { value: 'billing:', label: 'maintenance.caches.namespace_option:{"prefix":"billing:","name":"billing"}' },
     ])
@@ -140,7 +143,7 @@ describe('缓存管理：命名空间', () => {
 
   it('键或前缀按开头归到命名空间；不在任何开放命名空间里为 null', () => {
     expect(namespaceOf(NAMESPACES, 'access:policies:1')?.package).toBe('access')
-    expect(namespaceOf(NAMESPACES, 'notification:')?.editable).toBe(true)
+    expect(namespaceOf(NAMESPACES, 'notification:')?.values).toBe('Editable')
     expect(namespaceOf(NAMESPACES, 'locks:job')).toBeNull()
   })
 })
@@ -292,6 +295,16 @@ describe('缓存管理：缓存项', () => {
     expect(readOnlyReason(entry())).toBeNull()
     expect(readOnlyReason(entry({ editable: false }))).toBe('read-only')
     expect(readOnlyReason(entry({ text: null, editable: false }))).toBe('binary')
+    // 不回显的命名空间：两层都不给值，原因先于其余
+    expect(readOnlyReason(entry({ text: null, editable: false, hidden: true }))).toBe('hidden')
+    const hiddenObject = entry({
+      layer: 'Objects',
+      text: null,
+      editable: false,
+      hidden: true,
+    })
+    expect(readOnlyReason(hiddenObject)).toBe('hidden')
+    expect(canEditEntry(entry({ text: null, editable: false, hidden: true }), true)).toBe(false)
   })
 
   it('对象缓存的值按 JSON 只读：写得出为 object，写不出为 unrenderable；所在层写出文案', () => {

@@ -127,7 +127,7 @@ public sealed class RealtimeFeature : IHostedFeature, IDisposable
             });
             context.Services.AddSingleton<PresenceBoard>();
             context.Services.AddSingleton<IRealtimePresence>(static services => new RealtimePresence(services.GetRequiredService<ConnectionRegistry>(), services.GetRequiredService<PresenceBoard>()));
-            context.Services.AddCacheNamespace("realtime", editable: false);
+            context.Services.AddCacheNamespace("realtime", CacheValueAccess.ReadOnly);
         }
         else
         {

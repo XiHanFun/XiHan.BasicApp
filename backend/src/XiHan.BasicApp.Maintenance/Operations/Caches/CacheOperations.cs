@@ -38,7 +38,7 @@ public sealed class ListCacheNamespaces(IEnumerable<CacheNamespace> namespaces) 
             return ValueTask.FromResult(Result.Failure<CacheNamespacesResponse>(denied));
         }
 
-        var items = namespaces.OrderBy(static n => n.Prefix, StringComparer.Ordinal).Select(static n => new CacheNamespaceResponse(n.Package, n.Prefix, n.Editable)).ToList();
+        var items = namespaces.OrderBy(static n => n.Prefix, StringComparer.Ordinal).Select(static n => new CacheNamespaceResponse(n.Package, n.Prefix, n.Values)).ToList();
         return ValueTask.FromResult(Result.Success(new CacheNamespacesResponse(items)));
     }
 }
@@ -242,6 +242,7 @@ public sealed class ListCacheKeys(ISharedCache cache, IEnumerable<CacheNamespace
 /// <remarks>
 /// <c>GET /api/caches:inspect</c>（平台侧）。先找对象缓存：给出值的类型、剩余存活与滑动过期，值按 JSON 写出（写不出即不给文本），不能改写；
 /// 再找字节存储：大小、剩余存活与滑动过期取自存储，值按 UTF-8 解出文本（不是合法 UTF-8 即不给文本、也不能改写）
+/// 登记为不回显的命名空间（身份）两层都不给值，只给类型、大小与过期
 /// </remarks>
 /// <param name="cache">共享缓存</param>
 /// <param name="namespaces">各包登记的命名空间</param>
@@ -267,9 +268,14 @@ public sealed class InspectCacheEntry(ISharedCache cache, IEnumerable<CacheNames
         var key = new CacheKey(request.Key);
         if (scope.Objects is { } objects && (await objects.InspectAsync(key, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out var info))
         {
-            var value = await cache.GetAsync<object>(key, context.CancellationToken).ConfigureAwait(false);
-            var json = value.TryGetValue(out var item) ? CacheAccess.JsonOf(item) : null;
-            return new CacheEntryResponse(request.Key, CacheLayer.Objects, info.TypeName, null, CacheAccess.Seconds(info.TimeToLive), CacheAccess.Seconds(info.SlidingExpiration), json, false);
+            string? json = null;
+            if (!scope.Namespace.Hidden)
+            {
+                var value = await cache.GetAsync<object>(key, context.CancellationToken).ConfigureAwait(false);
+                json = value.TryGetValue(out var item) ? CacheAccess.JsonOf(item) : null;
+            }
+
+            return new CacheEntryResponse(request.Key, CacheLayer.Objects, info.TypeName, null, CacheAccess.Seconds(info.TimeToLive), CacheAccess.Seconds(info.SlidingExpiration), json, false, scope.Namespace.Hidden);
         }
 
         if (scope.Store is not { } store)
@@ -284,8 +290,8 @@ public sealed class InspectCacheEntry(ISharedCache cache, IEnumerable<CacheNames
             return CacheAccess.NotFound(request.Key);
         }
 
-        var text = CacheAccess.TextOf(payload);
-        return new CacheEntryResponse(request.Key, CacheLayer.Store, null, stored.Size, CacheAccess.Seconds(stored.TimeToLive), CacheAccess.Seconds(stored.SlidingExpiration), text, scope.Namespace.Editable && text is not null);
+        var text = scope.Namespace.Hidden ? null : CacheAccess.TextOf(payload);
+        return new CacheEntryResponse(request.Key, CacheLayer.Store, null, stored.Size, CacheAccess.Seconds(stored.TimeToLive), CacheAccess.Seconds(stored.SlidingExpiration), text, scope.Namespace.Editable && text is not null, scope.Namespace.Hidden);
     }
 }
 
@@ -349,7 +355,7 @@ public sealed class UpdateCacheEntry(ISharedCache cache, IEnumerable<CacheNamesp
             : CacheEntryOptions.Default;
         var value = Encoding.UTF8.GetBytes(request.Value);
         await cache.Store.SetAsync(key, value, options, context.CancellationToken).ConfigureAwait(false);
-        return new CacheEntryResponse(request.Key, CacheLayer.Store, null, value.Length, CacheAccess.Seconds(entry.TimeToLive), CacheAccess.Seconds(entry.SlidingExpiration), request.Value, true);
+        return new CacheEntryResponse(request.Key, CacheLayer.Store, null, value.Length, CacheAccess.Seconds(entry.TimeToLive), CacheAccess.Seconds(entry.SlidingExpiration), request.Value, true, false);
     }
 }
 

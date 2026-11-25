@@ -192,7 +192,9 @@ export default {
       namespace_placeholder: '選擇命名空間',
       namespace_option: '{prefix} · {name}',
       namespace_option_read_only: '{prefix} · {name}（唯讀）',
+      namespace_option_hidden: '{prefix} · {name}（不顯示值）',
       read_only: '唯讀',
+      hidden: '不顯示值',
       sub_prefix: '子前綴',
       sub_prefix_placeholder: '子前綴（選填）',
       search_by_prefix: '依前綴搜尋',
@@ -215,6 +217,8 @@ export default {
       never_expire: '永不過期',
       no_sliding: '無',
       read_only_hint: '鑑權相關的快取禁止改寫，只能刪除（刪除後依需求重建）',
+      hidden_title: '值不顯示',
+      hidden_hint: '身分快取裡是登入與找回流程的票據、驗證碼與計數，看到值就可能被冒用，只顯示大小與過期；可以刪除',
       binary_title: '無法預覽',
       binary_hint: '值不是 UTF-8 文字，無法預覽或改寫',
       // 两层：进程内的对象缓存与字节存储

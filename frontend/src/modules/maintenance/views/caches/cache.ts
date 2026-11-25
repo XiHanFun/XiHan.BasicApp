@@ -58,20 +58,20 @@ export function packageLabel(t: Translate, name: string): string {
   }
 }
 
-/** 命名空间下拉的选项：值是前缀，鉴权相关（不可改写）的标上只读 */
+/** 命名空间下拉的选项：值是前缀，鉴权相关（不可改写）的标上只读，身份的标上不回显 */
 export function namespaceOptions(t: Translate, namespaces: readonly CacheNamespace[]): { label: string, value: string }[] {
-  return namespaces.map((namespace) => {
-    const values = {
+  const labels = {
+    Editable: 'maintenance.caches.namespace_option',
+    ReadOnly: 'maintenance.caches.namespace_option_read_only',
+    Hidden: 'maintenance.caches.namespace_option_hidden',
+  } as const
+  return namespaces.map(namespace => ({
+    value: namespace.prefix,
+    label: t(labels[namespace.values], {
       prefix: namespace.prefix,
       name: packageLabel(t, namespace.package),
-    }
-    return {
-      value: namespace.prefix,
-      label: namespace.editable
-        ? t('maintenance.caches.namespace_option', values)
-        : t('maintenance.caches.namespace_option_read_only', values),
-    }
-  })
+    }),
+  }))
 }
 
 /** 键或前缀所在的命名空间（与后端同口径），不在开放命名空间里为 null */
@@ -355,10 +355,13 @@ export function canEditEntry(entry: Pick<CacheEntry, 'editable' | 'text'> | null
 
 /**
  * 不能改写的原因，能改写时为 null
+ * hidden：命名空间登记为不回显（身份的票据与验证码），不给值
  * object：对象缓存按 JSON 只读显示；unrenderable：写不出 JSON 不能预览
  * binary：字节存储的值不是 UTF-8 文本；read-only：命名空间鉴权相关只许删
  */
-export function readOnlyReason(entry: Pick<CacheEntry, 'editable' | 'layer' | 'text'>): 'binary' | 'object' | 'read-only' | 'unrenderable' | null {
+export function readOnlyReason(entry: Pick<CacheEntry, 'editable' | 'hidden' | 'layer' | 'text'>): 'binary' | 'hidden' | 'object' | 'read-only' | 'unrenderable' | null {
+  if (entry.hidden)
+    return 'hidden'
   const hasText = entry.text !== null && entry.text !== undefined
   if (entry.layer === 'Objects')
     return hasText ? 'object' : 'unrenderable'

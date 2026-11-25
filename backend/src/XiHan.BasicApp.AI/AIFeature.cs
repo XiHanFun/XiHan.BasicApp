@@ -91,7 +91,7 @@ public sealed class AIFeature : IHostedFeature
         context.Services.AddScoped<KnowledgeDocumentService>();
         context.Services.AddScoped<KnowledgeDocumentQueries>();
         context.Services.AddScoped<AiProviderReferences>();
-        context.Services.AddCacheNamespace("ai", editable: false);
+        context.Services.AddCacheNamespace("ai", CacheValueAccess.ReadOnly);
 
         context.Services.AddPermissionCatalog("ai", AIPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用

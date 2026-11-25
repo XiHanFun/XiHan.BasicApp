@@ -192,7 +192,9 @@ export default {
       namespace_placeholder: 'Selecciona un espacio de nombres',
       namespace_option: '{prefix} · {name}',
       namespace_option_read_only: '{prefix} · {name} (solo lectura)',
+      namespace_option_hidden: '{prefix} · {name} (valores ocultos)',
       read_only: 'Solo lectura',
+      hidden: 'Valor oculto',
       sub_prefix: 'Subprefijo',
       sub_prefix_placeholder: 'Subprefijo (opcional)',
       search_by_prefix: 'Buscar por prefijo',
@@ -215,6 +217,8 @@ export default {
       never_expire: 'No caduca',
       no_sliding: 'Ninguna',
       read_only_hint: 'Las cachés relacionadas con la autenticación no se pueden modificar, solo eliminar (se reconstruyen bajo demanda)',
+      hidden_title: 'Valor oculto',
+      hidden_hint: 'Las cachés de identidad guardan tiques de inicio de sesión y recuperación, códigos de verificación y contadores que podrían usarse indebidamente; solo se muestran el tamaño y la caducidad. La entrada se puede eliminar',
       binary_title: 'Vista previa no disponible',
       binary_hint: 'El valor no es texto UTF-8 y no se puede previsualizar ni modificar',
       // 两层：进程内的对象缓存与字节存储

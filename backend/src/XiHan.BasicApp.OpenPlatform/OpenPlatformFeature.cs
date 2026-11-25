@@ -86,7 +86,7 @@ public sealed class OpenPlatformFeature : IFeature
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         OpenPlatformFieldSecurity.Register(context.Services);
         // 缓存管理只开放登记过的命名空间；签名请求的防重放随机数，属鉴权数据，只许删、不许改写
-        context.Services.AddCacheNamespace("openplatform", editable: false);
+        context.Services.AddCacheNamespace("openplatform", CacheValueAccess.ReadOnly);
         context.Services.AddPageCatalog("openplatform", OpenPlatformPages.All);
         foreach (var permission in OpenPlatformPermissions.All)
         {

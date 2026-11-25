@@ -81,7 +81,7 @@ public sealed class PrintingFeature : IFeature
         context.Services.AddScoped<PrintTemplateResolver>();
         context.Services.AddScoped<PrintTemplateQueries>();
         context.Services.AddSingleton<IPolicy, PrintDataSourceCatalogPolicy>();
-        context.Services.AddCacheNamespace("printing", editable: true);
+        context.Services.AddCacheNamespace("printing", CacheValueAccess.Editable);
         context.Services.AddPermissionCatalog("printing", PrintingPermissions.All);
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         PrintingFieldSecurity.Register(context.Services);

@@ -139,7 +139,7 @@ public sealed class NotificationFeature : IHostedFeature, IDisposable
         // 字段安全：实体由响应类型生成，读、建、改的规则由 Access 的中间件统一套用
         NotificationFieldSecurity.Register(context.Services);
         // 缓存管理只开放登记过的命名空间
-        context.Services.AddCacheNamespace("notification", editable: true);
+        context.Services.AddCacheNamespace("notification", CacheValueAccess.Editable);
         context.Services.AddPageCatalog("notification", NotificationPages.All);
         context.Services.AddConfigCatalog("notification", [TelegramSettings.Config, TelegramSettings.SecretConfig, MessageRetentionJob.RetentionDaysConfig]);
         context.Services.AddJob<MessageRetentionJob>(new JobName(MessageRetentionJob.Name), MessageRetentionJob.Schedule);
