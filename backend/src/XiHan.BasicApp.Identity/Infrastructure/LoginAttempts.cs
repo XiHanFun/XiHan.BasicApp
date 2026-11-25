@@ -14,6 +14,7 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// </summary>
 /// <remarks>
 /// 单例服务。登录以失败结束时调用方的工作单元会整体回滚，计数与锁定必须在独立作用域里自己提交，否则永远锁不住
+/// 计数先读后写，调用方在 <see cref="SignInLocks"/> 的锁里核对并调用，同一账号的并发失败才不会少记
 /// </remarks>
 public sealed class LoginAttempts
 {

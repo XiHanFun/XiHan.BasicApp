@@ -145,6 +145,37 @@ public sealed class LoginDefenseTests : IDisposable
     }
 
     [Fact]
+    public async Task ConcurrentWrongPasswords_AreEachCounted_AndLockTheAccountAtTheLimit()
+    {
+        await using var server = await BasicAppTestServer.StartAsync(
+            _database.ConnectionString,
+            settings: [new("BasicApp:Auth:LoginThrottleAccountLimit", "1000"), new("BasicApp:Auth:MaxFailedAccessAttempts", "5")]);
+        await server.SeedDefaultsAsync();
+        await server.RunSeedersAsync();
+        const string wrong = """{"userName":"superadmin","password":"nope-12345"}""";
+
+        // 一齐打进来：同一账号的核对排队，排不上的按节流拒绝、不核对密码；不会因为并发写计数撞成 500
+        var burst = await Task.WhenAll(Enumerable.Range(0, 20).Select(_ => server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", wrong))));
+        Assert.DoesNotContain(burst, static r => r.Response.StatusCode == HttpStatusCode.InternalServerError);
+        var codes = burst.Select(static r => r.Body.GetProperty("code").GetString()).ToList();
+        Assert.All(codes, static c => Assert.True(c is "IDENTITY_DENIED_003" or "IDENTITY_DENIED_004" or "IDENTITY_UNAVAILABLE_001", c));
+
+        // 再一次次试到锁定：不论并发多少，回答「密码错误」的正好是上限减一次，第五次核对即锁定
+        var guesses = codes.Count(static c => c == "IDENTITY_DENIED_003");
+        var locked = codes.Contains("IDENTITY_DENIED_004");
+        for (var attempt = 0; attempt < 10 && !locked; attempt++)
+        {
+            var code = (await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", wrong))).Body.GetProperty("code").GetString();
+            guesses += code == "IDENTITY_DENIED_003" ? 1 : 0;
+            locked = code == "IDENTITY_DENIED_004";
+        }
+
+        Assert.True(locked);
+        Assert.Equal(4, guesses);
+        Assert.Equal("IDENTITY_DENIED_004", (await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:login", SuperAdminLogin))).Body.GetProperty("code").GetString());
+    }
+
+    [Fact]
     public async Task Authenticator_GatesSignInWithATicket_AndRejectsReplayedOrWrongCodes()
     {
         var clock = new ManualClock(DateTimeOffset.UtcNow);

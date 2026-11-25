@@ -45,7 +45,7 @@
 
 1. 登录节流（`LoginThrottle`）：固定窗口只数失败，同一账号同一地址每个窗口 `LoginThrottleAccountLimit`（5）次、同一地址跨账号 `LoginThrottleIpLimit`（30）次，窗口 `LoginThrottleWindowSeconds`（60 秒）；超限 `IDENTITY_UNAVAILABLE_001` 并带 `retryAfter`。
 2. 图形验证码（`CaptchaEnabled`，缺省开）：`auth.captcha` 发一张 4 位数字的 SVG（数字画成随机变形的路径、混着干扰曲线，SVG 里没有可直接读出的文本），共享缓存里只存散列，`CaptchaSeconds`（300 秒）内用一次即作废，错了是 `IDENTITY_VALIDATION_007`。
-3. 账号与密码：租户账号先核对租户存在、启用且没到期；连续失败达到 `MaxFailedAccessAttempts`（5）次锁定 `LockoutMinutes`（15）分钟。用户名错还是密码错不区分，都是 `IDENTITY_DENIED_003`。
+3. 账号与密码：租户账号先核对租户存在、启用且没到期；连续失败达到 `MaxFailedAccessAttempts`（5）次锁定 `LockoutMinutes`（15）分钟。用户名错还是密码错不区分，都是 `IDENTITY_DENIED_003`。同一账号的核对排队（分布式锁）：并发的尝试排不上即 `IDENTITY_UNAVAILABLE_001`、不核对密码，失败次数一次不少记，锁定才作数；两步验证的第二步同一把锁。
 
 账号开了双因素即返回挑战（见[双因素](#双因素)）；否则先过登录守卫（Access 实现：访问策略的登录时机、登录失败自动封禁），再开会话、签令牌对。
 
@@ -91,7 +91,7 @@
 | 每个客户端地址每天（UTC） | `VerificationCodeDailyPerAddress`（50 次） |
 | 输错即作废 | `VerificationCodeMaxFailures`（5 次），之后锁定 `VerificationCodeLockoutMinutes`（10 分钟） |
 
-这组限制对找回密码、个人中心验证联系方式与双因素的邮件 / 短信码同样适用。码对、发码之后联系方式没变才认账号，再核对状态与锁定期；账号开了双因素照样要第二步。码连同错误次数加密后存在共享缓存里（数据保护密钥），缓存管理里 `identity:` 命名空间不回显值。
+这组限制对找回密码、个人中心验证联系方式与双因素的邮件 / 短信码同样适用。码对、发码之后联系方式没变才认账号，再核对状态与锁定期；账号开了双因素照样要第二步。码连同错误次数加密后存在共享缓存里（数据保护密钥），缓存管理里 `identity:` 命名空间不回显值；同一个码的核对排队，并发的猜测不会少记次数。
 
 ### 第三方登录
 

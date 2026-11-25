@@ -7,6 +7,7 @@ using XiHan.BasicApp.Contracts.Security;
 using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
+using XiHan.Framework.Caching.Abstractions.Locking;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Primitives;
@@ -32,6 +33,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="clock">时间源</param>
 /// <param name="tenants">框架租户目录：租户账号登录前先确认租户存在且启用</param>
 /// <param name="guards">登录守卫（认证失败计数；签发前的判定在 <see cref="LoginSessions"/>）</param>
+/// <param name="locks">分布式锁（同一账号的核对排队，<see cref="SignInLocks"/>）</param>
 [Operation(Id, Expose = Expose.Http)]
 public sealed class Login(
     UserAccountService accounts,
@@ -43,7 +45,8 @@ public sealed class Login(
     IdentityOptions options,
     TimeProvider clock,
     ITenantStore tenants,
-    IEnumerable<ILoginGuard> guards) : IOperation<LoginRequest, LoginResponse>
+    IEnumerable<ILoginGuard> guards,
+    IDistributedLock locks) : IOperation<LoginRequest, LoginResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -108,6 +111,14 @@ public sealed class Login(
             return Error.Denied(IdentityErrors.AccountUnavailable, IdentityMessages.AccountUnavailable, MessageArguments.Of(("status", user.Status.ToString())));
         }
 
+        // 同一账号的核对排队：读锁定与次数、核对密码、记失败在一把锁里，并发的猜测不会少记
+        var signIn = await SignInLocks.AcquireAsync(locks, user.Id, context.CancellationToken).ConfigureAwait(false);
+        if (!signIn.TryGetValue(out var lease))
+        {
+            return signIn.Error!;
+        }
+
+        await using var held = lease;
         var securityResult = await accounts.SecurityOfAsync(user.Id, context.CancellationToken).ConfigureAwait(false);
         if (!securityResult.TryGetValue(out var security))
         {

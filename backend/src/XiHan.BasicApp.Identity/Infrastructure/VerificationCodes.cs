@@ -6,6 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using XiHan.BasicApp.Runtime.Security;
 using XiHan.Framework.Caching.Abstractions.Caches;
+using XiHan.Framework.Caching.Abstractions.Locking;
 using XiHan.Framework.Caching.Abstractions.Stores;
 using XiHan.Framework.Primitives;
 
@@ -26,7 +27,8 @@ namespace XiHan.BasicApp.Identity.Infrastructure;
 /// <param name="codes">码源（与图形验证码共用，测试换成固定码）</param>
 /// <param name="clock">时间源</param>
 /// <param name="protector">加密缓存里的码</param>
-public sealed class VerificationCodes(ISharedCache cache, IdentityOptions options, ICaptchaCodeSource codes, TimeProvider clock, ISecretProtector protector)
+/// <param name="locks">分布式锁（同一个码的核对排队）</param>
+public sealed class VerificationCodes(ISharedCache cache, IdentityOptions options, ICaptchaCodeSource codes, TimeProvider clock, ISecretProtector protector, IDistributedLock locks)
 {
     /// <summary>
     /// 缓存里码的加密用途
@@ -115,6 +117,13 @@ public sealed class VerificationCodes(ISharedCache cache, IdentityOptions option
             return Locked();
         }
 
+        // 错误次数先读后写：同一个码的核对排队，并发的猜测不会少记；正在核对时这一次不核对、不计数
+        if (!(await locks.TryAcquireAsync(new CacheKey($"identity:code-check:{purpose}:{HashOf(subject)}"), SignInLocks.Lease, cancellationToken).ConfigureAwait(false)).TryGetValue(out var lease))
+        {
+            return Invalid();
+        }
+
+        await using var held = lease;
         var key = CodeKey(purpose, subject);
         var now = clock.GetUtcNow();
         if (string.IsNullOrWhiteSpace(code) || !(await cache.GetAsync<string>(key, cancellationToken).ConfigureAwait(false)).TryGetValue(out var raw) || Open(raw) is not { } state || state.ExpiresAt <= now)

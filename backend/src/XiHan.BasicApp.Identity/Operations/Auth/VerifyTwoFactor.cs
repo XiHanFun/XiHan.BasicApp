@@ -7,6 +7,7 @@ using XiHan.BasicApp.Identity.Domain.Entities;
 using XiHan.BasicApp.Identity.Domain.Services;
 using XiHan.BasicApp.Identity.Infrastructure;
 using XiHan.BasicApp.Runtime.Security;
+using XiHan.Framework.Caching.Abstractions.Locking;
 using XiHan.Framework.Kernel.Operations;
 using XiHan.Framework.MultiTenancy.Abstractions.Tenants;
 using XiHan.Framework.Persistence.Abstractions.Repositories;
@@ -36,6 +37,7 @@ namespace XiHan.BasicApp.Identity.Operations.Auth;
 /// <param name="clock">时间源</param>
 /// <param name="tenants">框架租户目录</param>
 /// <param name="guards">登录守卫（认证失败计数；签发前的判定在 <see cref="LoginSessions"/>）</param>
+/// <param name="locks">分布式锁（同一账号的核对排队，<see cref="SignInLocks"/>）</param>
 [Operation(Id, Expose = Expose.Http)]
 public sealed class VerifyTwoFactor(
     IRepository<SysUser, Guid> users,
@@ -49,7 +51,8 @@ public sealed class VerifyTwoFactor(
     IdentityOptions options,
     TimeProvider clock,
     ITenantStore tenants,
-    IEnumerable<ILoginGuard> guards) : IOperation<VerifyTwoFactorRequest, TokenResponse>
+    IEnumerable<ILoginGuard> guards,
+    IDistributedLock locks) : IOperation<VerifyTwoFactorRequest, TokenResponse>
 {
     /// <summary>
     /// 操作 ID
@@ -79,6 +82,19 @@ public sealed class VerifyTwoFactor(
         log.AccountTenantId = user.HomeTenantId;
         log.UserId = user.Id;
         log.UserName = user.UserName;
+        // 与密码登录同一把锁：票据、码与账号的错误次数都在锁里读写；票据在锁里重读，次数以拿到锁之后的为准
+        var signIn = await SignInLocks.AcquireAsync(locks, user.Id, context.CancellationToken).ConfigureAwait(false);
+        if (!signIn.TryGetValue(out var lease))
+        {
+            return signIn.Error!;
+        }
+
+        await using var held = lease;
+        if (!(await tickets.FindAsync(request.Ticket, context.CancellationToken).ConfigureAwait(false)).TryGetValue(out ticket))
+        {
+            return Error.Denied(IdentityErrors.TwoFactorTicketInvalid, IdentityMessages.TwoFactorTicketInvalid);
+        }
+
         var account = Login.ThrottleKeyOf(user.HomeTenantId, user.UserName);
         var address = SessionClient.AddressOf(context);
         var allowed = await throttle.CheckAsync(account, address, context.CancellationToken).ConfigureAwait(false);
