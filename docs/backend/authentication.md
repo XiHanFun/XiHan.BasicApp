@@ -44,7 +44,7 @@
 依次过三关：
 
 1. 登录节流（`LoginThrottle`）：固定窗口只数失败，同一账号同一地址每个窗口 `LoginThrottleAccountLimit`（5）次、同一地址跨账号 `LoginThrottleIpLimit`（30）次，窗口 `LoginThrottleWindowSeconds`（60 秒）；超限 `IDENTITY_UNAVAILABLE_001` 并带 `retryAfter`。
-2. 图形验证码（`CaptchaEnabled`，缺省开）：`auth.captcha` 发一张 4 位数字的 SVG，共享缓存里只存散列，`CaptchaSeconds`（300 秒）内用一次即作废，错了是 `IDENTITY_VALIDATION_007`。
+2. 图形验证码（`CaptchaEnabled`，缺省开）：`auth.captcha` 发一张 4 位数字的 SVG（数字画成随机变形的路径、混着干扰曲线，SVG 里没有可直接读出的文本），共享缓存里只存散列，`CaptchaSeconds`（300 秒）内用一次即作废，错了是 `IDENTITY_VALIDATION_007`。
 3. 账号与密码：租户账号先核对租户存在、启用且没到期；连续失败达到 `MaxFailedAccessAttempts`（5）次锁定 `LockoutMinutes`（15）分钟。用户名错还是密码错不区分，都是 `IDENTITY_DENIED_003`。
 
 账号开了双因素即返回挑战（见[双因素](#双因素)）；否则先过登录守卫（Access 实现：访问策略的登录时机、登录失败自动封禁），再开会话、签令牌对。

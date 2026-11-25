@@ -2,7 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Net;
+using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using XiHan.BasicApp.Auditing.Domain.Services;
@@ -73,7 +75,12 @@ public sealed class LoginDefenseTests : IDisposable
         {
             var (issued, issuedBody) = await server.SendAsync(BasicAppTestServer.Request(HttpMethod.Post, "/api/auth:captcha", "{}"));
             Assert.Equal(HttpStatusCode.OK, issued.StatusCode);
-            Assert.StartsWith("data:image/svg+xml;base64,", issuedBody.GetProperty("image").GetString(), StringComparison.Ordinal);
+            var image = issuedBody.GetProperty("image").GetString()!;
+            Assert.StartsWith("data:image/svg+xml;base64,", image, StringComparison.Ordinal);
+            // 字符画成路径：SVG 里没有能直接读出来的文本
+            var svg = Encoding.UTF8.GetString(Convert.FromBase64String(image["data:image/svg+xml;base64,".Length..]));
+            Assert.DoesNotContain("<text", svg, StringComparison.Ordinal);
+            Assert.Equal(4 + 3, Regex.Count(svg, "<path "));
             Assert.Equal(300, issuedBody.GetProperty("expiresInSeconds").GetInt32());
             return issuedBody.GetProperty("captchaId").GetString()!;
         }
