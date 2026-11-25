@@ -9,8 +9,22 @@ description: 根据 XiHan.BasicApp 当前暂存区生成一行提交信息时使
 2. 只读取 `git diff --cached --stat`、完整 staged diff 和最近 20 条提交。暂存区为空时不从未暂存内容猜测。
 3. 将全部暂存变化归纳为一个意图，输出一行 Conventional Commit。
 
-格式：`<type>(<scope>): <中文说明>`，第一人称，64 字以内，不写正文。type 使用 `feat`、`fix`、`refactor`、`perf`、`docs`、`style`、`test`、`build`、`ci`、`chore`、`revert`。
+格式：`<type>(<scope>): <中文说明>`，第一人称。type 使用 `feat`、`fix`、`refactor`、`perf`、`docs`、`style`、`test`、`build`、`ci`、`chore`、`revert`。
 
 scope 取改动所在的位置：`backend`、`frontend`、`docs`、`plans`、`ci`，或能力包短名（`identity`、`tenancy`、`organization`、`access`、`settings`、`files`、`notification`、`auditing`、`realtime`、`maintenance`、`openplatform`、`workbench`、`printing`、`chat`、`workflow`、`codegeneration`、`ai`、`host`、`runtime`、`contracts`）；跨前后端的同一功能用能力包 scope，不逐文件罗列。
 
-改变操作 ID 或路由、DTO、权限码、页面路由、表结构或公开配置时使用 `!`，除非仓库当前兼容策略明确证明非破坏（首个正式版发布前直接改，不算破坏）。只要求消息时最终只输出一行标题。
+改变操作 ID 或路由、DTO、权限码、页面路由、表结构或公开配置时使用 `!`，除非仓库当前兼容策略明确证明非破坏（首个正式版发布前直接改，不算破坏）。
+
+## 写短
+
+- 只写一行标题，不写正文。
+- 说明一句话讲这次改动的结果，不超过 40 个字：汉字、字母、数字、标点各算一个，末尾的 `（ADR-NNNN）` 不计。
+- 说明里不再出现「：」「；」，除末尾的 ADR 注外不用括号或破折号补充；不罗列文件、成员、取值与改前改后，不写向量与测试的数量、门禁结果，这些写进 更新日志、`plans/` 或 PR 描述。
+- 40 个字写不下时，多半是暂存区混了几件事（先建议拆成几笔），或细节写多了（删到只剩结果），不要加长标题。
+
+示例：
+
+- `fix(identity): 验证码加密后进缓存，缓存管理不回显身份命名空间的值`
+- `fix(settings): 站点图片的匿名地址只出四种图片类型并带沙箱 CSP`
+
+只要求消息时最终只输出一行标题。

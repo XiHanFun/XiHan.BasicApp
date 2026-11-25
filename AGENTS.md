@@ -176,7 +176,8 @@ XiHan.BasicApp 是基于 XiHan.Framework 的 .NET 10 后端与基于 XiHan.UI �
 ## Git 与提交
 
 - 保留用户已有和无关改动；不要 reset、checkout 或清理它们。
-- 使用 Conventional Commits：一行 `<type>(<scope>): <中文说明>`，64 字以内，不写正文。
+- 使用 Conventional Commits：`<type>(<scope>): <中文说明>`。
+- 提交信息只写一行标题，不写正文。说明一句话讲这次改动的结果，不超过 40 个字（汉字、字母、数字、标点各算一个，末尾的 `（ADR-NNNN）` 不计）；不再用「：」「；」往下展开，不罗列文件、成员、取值与改前改后，不写测试数量与门禁结果，这些细节写进 更新日志、`plans/` 或 PR 描述。细则见 `commit-msg` 技能。
 - 每项完整功能独立提交；同一契约所需的后端、前端、测试、种子和文档可以同一提交。
 - 提交前运行 `git diff --check`、相关测试和必要构建。
 - 不推送、不发布、不创建远程 PR，除非用户明确要求。
