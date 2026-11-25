@@ -24,6 +24,7 @@ namespace XiHan.BasicApp.Host.Endpoints;
 /// <item><c>GET /api/site/assets/{id}</c>：匿名读站点图片（登录页在登录之前就要显示），只认经上面的端点上传的文件；文件 ID 不变，按不可变内容缓存一年</item>
 /// </list>
 /// 按文件头认 PNG、JPEG、WebP 与 ICO（不认 SVG：同源打开会执行脚本），不超过 2 MB；存平台侧、公开级别，不计入租户的存储配额（与头像同一做法）
+/// 读的时候只放行这四种内容类型、带沙箱 CSP：通用上传也能写站点标签与任意内容类型，不能让它借这个匿名同源地址内联出 HTML
 /// </remarks>
 internal static class SiteEndpoints
 {
@@ -146,7 +147,7 @@ internal static class SiteEndpoints
     {
         var context = ContextOf(http);
         var found = await files.FindAsync(TenantIds.Platform, id, http.RequestAborted).ConfigureAwait(false);
-        if (!found.TryGetValue(out var file) || !string.Equals(file.Tags, AssetTag, StringComparison.Ordinal) || file.AccessLevel != FileAccessLevel.Public)
+        if (!found.TryGetValue(out var file) || !string.Equals(file.Tags, AssetTag, StringComparison.Ordinal) || file.AccessLevel != FileAccessLevel.Public || !_kinds.Any(k => string.Equals(k.ContentType, file.ContentType, StringComparison.Ordinal)))
         {
             return Fail(context, found.IsFailure ? found.Error! : Error.NotFound(FilesErrors.FileNotFound, FilesMessages.FileNotFound, MessageArguments.Of(("id", id))));
         }
@@ -164,6 +165,7 @@ internal static class SiteEndpoints
             response.ContentLength = blob.Metadata.Length;
             response.Headers.CacheControl = "public, max-age=31536000, immutable";
             response.Headers["X-Content-Type-Options"] = "nosniff";
+            response.Headers.ContentSecurityPolicy = "default-src 'none'; sandbox";
             await blob.Content.CopyToAsync(response.Body, http.RequestAborted).ConfigureAwait(false);
         }
 

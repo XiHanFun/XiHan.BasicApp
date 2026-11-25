@@ -172,12 +172,16 @@ public sealed class SiteSettingsTests : IDisposable
         Assert.Equal(HttpStatusCode.OK, served.StatusCode);
         Assert.Equal("image/png", served.Content.Headers.ContentType?.MediaType);
         Assert.Contains("immutable", served.Headers.CacheControl?.ToString(), StringComparison.Ordinal);
+        Assert.Equal("default-src 'none'; sandbox", served.Headers.GetValues("Content-Security-Policy").Single());
         Assert.Equal(_png, await served.Content.ReadAsByteArrayAsync());
         Assert.Equal(url, (await SendAsync(server, HttpMethod.Get, "/api/site:resolve", null, tenant)).Body.GetProperty("profile").GetProperty("logo").GetProperty("url").GetString());
 
         // 别的文件不能当站点图片读，也不能写进设置
         var otherFile = await UploadFileAsync(server, platform);
         Assert.Equal(HttpStatusCode.NotFound, (await server.Client.GetAsync($"/api/site/assets/{otherFile}")).StatusCode);
+        // 通用上传自己填站点标签、公开级别与 HTML 内容类型：也不经这个匿名同源地址输出
+        var page = await UploadFileAsync(server, platform, "<script>alert(1)</script>"u8.ToArray(), "text/html", "page.html", [("tags", "site"), ("accessLevel", "Public")]);
+        Assert.Equal(HttpStatusCode.NotFound, (await server.Client.GetAsync($"/api/site/assets/{page}")).StatusCode);
         var (foreign, foreignBody) = await SendAsync(server, HttpMethod.Put, "/api/site", new { logo = otherFile }, tenant);
         Assert.Equal((HttpStatusCode.BadRequest, "SETTINGS_VALIDATION_012"), (foreign, foreignBody.GetProperty("code").GetString()));
 
@@ -197,12 +201,21 @@ public sealed class SiteSettingsTests : IDisposable
         Assert.Equal(JsonValueKind.Null, (await SendAsync(server, HttpMethod.Get, "/api/site:resolve", null, tenant)).Body.GetProperty("profile").GetProperty("logo").ValueKind);
     }
 
-    private static async Task<string> UploadFileAsync(BasicAppTestServer server, string token)
+    private static Task<string> UploadFileAsync(BasicAppTestServer server, string token)
+        => UploadFileAsync(server, token, _png, "image/png", "plain.png", []);
+
+    private static async Task<string> UploadFileAsync(BasicAppTestServer server, string token, byte[] bytes, string contentType, string fileName, (string Name, string Value)[] fields)
     {
         var request = BasicAppTestServer.Request(HttpMethod.Post, "/api/files/upload", token: token);
-        var content = new ByteArrayContent(_png);
-        content.Headers.ContentType = new MediaTypeHeaderValue("image/png");
-        request.Content = new MultipartFormDataContent { { content, "file", "plain.png" } };
+        var content = new ByteArrayContent(bytes);
+        content.Headers.ContentType = new MediaTypeHeaderValue(contentType);
+        var form = new MultipartFormDataContent { { content, "file", fileName } };
+        foreach (var (name, value) in fields)
+        {
+            form.Add(new StringContent(value), name);
+        }
+
+        request.Content = form;
         var (response, body) = await server.SendAsync(request);
         Assert.True(response.StatusCode == HttpStatusCode.OK, body.ToString());
         return body.GetProperty("id").GetString()!;

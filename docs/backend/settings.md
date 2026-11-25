@@ -93,7 +93,7 @@ Settings 包（Tier 2）提供参数配置、字典与业务编号三类「运�
 | `site.update`（`PUT /api/site`） | `settings.site.update` | 整体覆盖调用方这一侧；图片只能保留现在的或去掉（去掉的随即回收），给别的文件 ID 即 `SETTINGS_VALIDATION_012` |
 | `POST /api/site/assets/{slot}` | `settings.site.update` | 换掉 `logo` 或 `favicon`：按文件头认 PNG、JPEG、WebP 与 ICO（不认 SVG），不超过 2 MB，否则 `SETTINGS_VALIDATION_013`；旧图回收 |
 | `site.resolve`（`GET /api/site:resolve?host=`） | 匿名 | 前端壳层用：登录了按令牌里的租户，没登录按 `host` 找绑定了这个域名的租户，返回生效的设置（租户的叠在平台的之上）与按域名找到的租户 ID |
-| `GET /api/site/assets/{id}` | 匿名 | 读站点图片（登录页在登录之前就要显示），只认经上面的端点上传的文件，按不可变内容缓存一年 |
+| `GET /api/site/assets/{id}` | 匿名 | 读站点图片（登录页在登录之前就要显示），只认经上面的端点上传的文件、只出那四种图片类型，带沙箱 CSP，按不可变内容缓存一年 |
 
 邮件、短信与机器人消息模板里的变量 `brand` 调用方没传时，取发送这一侧生效的系统名（经 Contracts 的 `ISiteBrand`），租户发出的消息即带它自己的品牌。
 
